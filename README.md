@@ -10,7 +10,7 @@ Features
 
 2. Reroute Enhancement
     - Add "Reroute" option to node slot menu.
-      <details>
+      <details open>
       <summary>Preview</summary>
       <table class="center">
         <tr style="line-height: 0">
@@ -24,7 +24,7 @@ Features
       </table>
       </details>
     - Optimized for deleting Reroute Node.
-      <details>
+      <details open>
       <summary>Preview</summary>
       <table class="center">
         <tr style="line-height: 0">
