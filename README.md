@@ -13,9 +13,13 @@ Features
 
 1. UrlDownload Node
 
-   Download the remote url to the local and return the file path
+   Download file from remote url and get file path
 
-2. Reroute Enhancement
+2. UploadAnything Node
+
+   Upload any file and get file path
+
+3. Reroute Enhancement
     - Add "Reroute" option to node slot menu.
       <details open>
       <summary>Preview</summary>
@@ -44,6 +48,11 @@ Features
         </tr>
       </table>
       </details>
+
+Reference
+---
+
+- [Kosinkadink/ComfyUI-VideoHelperSuite](https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite)
 
 License
 ---
