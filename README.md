@@ -1,6 +1,13 @@
 ComfyUI-Dev-Utils
 ===
 
+Installation
+---
+
+1. cd custom_nodes
+2. git clone https://github.com/ty0x2333/ComfyUI-Dev-Utils.git
+3. Restart ComfyUI
+
 Features
 ---
 
