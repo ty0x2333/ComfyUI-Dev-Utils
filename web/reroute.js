@@ -85,3 +85,48 @@ app.registerExtension({
     }
 });
 
+const deleteSelectedNodes = LGraphCanvas.prototype.deleteSelectedNodes;
+LGraphCanvas.prototype.deleteSelectedNodes = function () {
+
+    this.graph.beforeChange();
+
+    for (var i in this.selected_nodes) {
+        var node = this.selected_nodes[i];
+        if (node.type != "Reroute") {
+            continue;
+        }
+        if (node.block_delete) {
+            continue;
+        }
+        if(node.inputs && node.inputs.length && node.outputs && node.outputs.length && LiteGraph.isValidConnection( node.inputs[0].type, node.outputs[0].type ) && node.inputs[0].link && node.outputs[0].links && node.outputs[0].links.length )
+        {
+            var input_link = node.graph.links[ node.inputs[0].link ];
+            var output_links = node.outputs[0].links.map(function (link_id) {
+                return node.graph.links[link_id]
+            })
+            var input_node = node.getInputNode(0);
+            var output_nodes = node.getOutputNodes(0);
+
+            if (input_node && output_nodes) {
+                for (var outputIndex = 0; outputIndex < output_nodes.length; ++outputIndex) {
+                    const output_node =  output_nodes[outputIndex];
+                    const output_link = output_links[outputIndex];
+                    input_node.connect( input_link.origin_slot, output_node, output_link.target_slot );
+                }
+            }
+        }
+        this.graph.remove(node);
+        if (this.onNodeDeselected) {
+            this.onNodeDeselected(node);
+        }
+        delete this.selected_nodes[i];
+    }
+
+    // this.selected_nodes = {};
+    this.current_node = null;
+    this.highlighted_links = {};
+    this.setDirty(true);
+    this.graph.afterChange();
+
+    deleteSelectedNodes.apply(this);
+}
