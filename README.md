@@ -44,3 +44,7 @@ Features
         </tr>
       </table>
       </details>
+
+License
+---
+ComfyUI-Dev-Utils is available under the MIT license. See the LICENSE file for more info.
