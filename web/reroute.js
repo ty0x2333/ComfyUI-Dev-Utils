@@ -3,7 +3,7 @@ import {app} from "../../../scripts/app.js";
 
 app.registerExtension({
     name: "TyDev-Utils.Reroute",
-    async beforeRegisterNodeDef(nodeType, nodeData, app) {
+    addRerouteMenu(nodeType) {
         const getSlotMenuOptions = nodeType.prototype.getSlotMenuOptions;
         nodeType.prototype.getSlotMenuOptions = function (slot) {
 
@@ -43,7 +43,7 @@ app.registerExtension({
                 menuInfo.push({
                     content: 'Reroute',
                     slot: slot,
-                    callback: async (value, options, event, parentMenu, node) => {
+                    callback: (value, options, event, parentMenu, node) => {
                         const slot = value.slot;
                         node.graph.beforeChange();
                         if (
@@ -82,7 +82,12 @@ app.registerExtension({
 
             return menuInfo;
         };
-    }
+    },
+    setup() {
+        for (const nodeType of Object.values(LiteGraph.registered_node_types)) {
+            this.addRerouteMenu(nodeType);
+        }
+    },
 });
 
 const deleteSelectedNodes = LGraphCanvas.prototype.deleteSelectedNodes;
