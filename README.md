@@ -21,20 +21,7 @@ Features
 
 3. Reroute Enhancement
     - Add "Reroute" option to node slot menu.
-      <details open>
-      <summary>Preview</summary>
-      <table class="center">
-        <tr style="line-height: 0">
-        <td width=50% style="border: none; text-align: center">Before</td>
-        <td width=50% style="border: none; text-align: center">After</td>
-        </tr>
-        <tr>
-        <td width=50% style="border: none"><img src="https://github.com/ty0x2333/ComfyUI-Dev-Utils/wiki/images/before-delete-reroute-node.gif" style="width:100%"></td>
-        <td width=50% style="border: none"><img src="https://github.com/ty0x2333/ComfyUI-Dev-Utils/wiki/images/after-delete-reroute-node.gif" style="width:100%"></td>
-        </tr>
-      </table>
-      </details>
-    - Optimized for deleting Reroute Node.
+
       <details open>
       <summary>Preview</summary>
       <table class="center">
@@ -48,6 +35,23 @@ Features
         </tr>
       </table>
       </details>
+
+    - Optimized for deleting Reroute Node.
+
+      <details open>
+      <summary>Preview</summary>
+      <table class="center">
+        <tr style="line-height: 0">
+        <td width=50% style="border: none; text-align: center">Before</td>
+        <td width=50% style="border: none; text-align: center">After</td>
+        </tr>
+        <tr>
+        <td width=50% style="border: none"><img src="https://github.com/ty0x2333/ComfyUI-Dev-Utils/wiki/images/before-delete-reroute-node.gif" style="width:100%"></td>
+        <td width=50% style="border: none"><img src="https://github.com/ty0x2333/ComfyUI-Dev-Utils/wiki/images/after-delete-reroute-node.gif" style="width:100%"></td>
+        </tr>
+      </table>
+      </details>
+      
 
 Reference
 ---
