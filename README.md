@@ -11,15 +11,27 @@ Installation
 Features
 ---
 
-1. UrlDownload Node
+1. Execution Time Analysis Tool
+    - When running, a Badge will be added to the upper left corner of the Node to display the execution time of the
+      node.
+      <details open>
+      <summary>Preview</summary>
+      <img src="https://github.com/ty0x2333/ComfyUI-Dev-Utils/wiki/images/execution-time-badge.png">
+      </details>
+    - Add `Execution Time` Node to display the execution time of each node in a table. At the same time, the current
+      execution time and the last execution time, as well as their differences, will be displayed.
+      <details open>
+      <summary>Preview</summary>
+      <img src="https://github.com/ty0x2333/ComfyUI-Dev-Utils/wiki/images/execution-time-node.png">
+      </details>
+    - Add a "Clear Execution Cache" button to the sidebar menu. Click it to clear the current cache(unload models and
+      free memory).
+      <details open>
+      <summary>Preview</summary>
+      <img src="https://github.com/ty0x2333/ComfyUI-Dev-Utils/wiki/images/clear-execution-cache-button.png" style="height:200px">
+      </details>
 
-   Download file from remote url and get file path
-
-2. UploadAnything Node
-
-   Upload any file and get file path
-
-3. Reroute Enhancement
+2. Reroute Enhancement
     - Add "Reroute" option to node slot menu.
 
       <details open>
@@ -52,12 +64,21 @@ Features
       </table>
       </details>
 
+3. UrlDownload Node
+
+   Download file from remote url and get file path
+
+4. UploadAnything Node
+
+   Upload any file and get file path
+
 Reference
 ---
 
 - [ltdrdata/ComfyUI-Manager](https://github.com/ltdrdata/ComfyUI-Manager)
 - [Kosinkadink/ComfyUI-VideoHelperSuite](https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite)
 - [chrisgoringe/cg-quicknodes](https://github.com/chrisgoringe/cg-quicknodes)
+- [tzwm/comfyui-profiler](https://github.com/tzwm/comfyui-profiler)
 
 License
 ---
