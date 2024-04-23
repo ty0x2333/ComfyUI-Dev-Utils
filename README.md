@@ -38,7 +38,7 @@ Features
 
    </details>
 
-3. Reroute Enhancement
+2. Reroute Enhancement
     - Add "Reroute" option to node slot menu.
 
       <details open>
@@ -71,11 +71,11 @@ Features
       </table>
       </details>
 
-4. UrlDownload Node
+3. `UrlDownload` Node
 
    Download file from remote url and get file path
 
-5. UploadAnything Node
+4. `UploadAnything` Node
 
    Upload any file and get file path
 
