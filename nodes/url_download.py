@@ -33,7 +33,7 @@ class UrlDownload:
 
     FUNCTION = "doit"
 
-    CATEGORY = "TyDev-Utils/utils"
+    CATEGORY = "TyDev-Utils/Utils"
 
     @staticmethod
     def uniquify(path, sep='-'):

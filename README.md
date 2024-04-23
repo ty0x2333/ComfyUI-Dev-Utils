@@ -51,12 +51,13 @@ Features
         </tr>
       </table>
       </details>
-      
 
 Reference
 ---
 
+- [ltdrdata/ComfyUI-Manager](https://github.com/ltdrdata/ComfyUI-Manager)
 - [Kosinkadink/ComfyUI-VideoHelperSuite](https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite)
+- [chrisgoringe/cg-quicknodes](https://github.com/chrisgoringe/cg-quicknodes)
 
 License
 ---

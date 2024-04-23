@@ -29,7 +29,7 @@ class UploadAnything:
             },
         }
 
-    CATEGORY = "TyDev-Utils/utils"
+    CATEGORY = "TyDev-Utils/Utils"
 
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("file_path",)
