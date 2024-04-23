@@ -16,13 +16,13 @@ Features
       node.
       <details open>
       <summary>Preview</summary>
-      <img src="https://github.com/ty0x2333/ComfyUI-Dev-Utils/wiki/images/execution-time-badge.png">
+      <img src="https://github.com/ty0x2333/ComfyUI-Dev-Utils/wiki/images/execution-time-badge.png" style="height: 150px">
       </details>
     - Add `Execution Time` Node to display the execution time of each node in a table. At the same time, the current
       execution time and the last execution time, as well as their differences, will be displayed.
       <details open>
       <summary>Preview</summary>
-      <img src="https://github.com/ty0x2333/ComfyUI-Dev-Utils/wiki/images/execution-time-node.png">
+      <img src="https://github.com/ty0x2333/ComfyUI-Dev-Utils/wiki/images/execution-time-node.png" style="height: 150px">
       </details>
     - Add a "Clear Execution Cache" button to the sidebar menu. Click it to clear the current cache(unload models and
       free memory).
@@ -30,6 +30,11 @@ Features
       <summary>Preview</summary>
       <img src="https://github.com/ty0x2333/ComfyUI-Dev-Utils/wiki/images/clear-execution-cache-button.png" style="height:200px">
       </details>
+   
+   <details open>
+   <summary>Usage example (video)</summary>
+   https://github.com/ty0x2333/ComfyUI-Dev-Utils/wiki/videos/execution-time-analysis-demo.webm
+   </details>
 
 2. Reroute Enhancement
     - Add "Reroute" option to node slot menu.
