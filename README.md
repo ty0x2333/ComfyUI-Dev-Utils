@@ -32,11 +32,13 @@ Features
       </details>
    
    <details open>
-   <summary>Usage example (video)</summary>
-   https://github.com/ty0x2333/ComfyUI-Dev-Utils/wiki/videos/execution-time-analysis-demo.webm
+   <summary>Usage Example (Video)</summary>
+
+   [Execution Time Analysis Demo](https://github.com/ty0x2333/ComfyUI-Dev-Utils/assets/7489176/c5e049e5-1ea3-4522-933f-a3ee73abe2fe)
+
    </details>
 
-2. Reroute Enhancement
+3. Reroute Enhancement
     - Add "Reroute" option to node slot menu.
 
       <details open>
@@ -69,11 +71,11 @@ Features
       </table>
       </details>
 
-3. UrlDownload Node
+4. UrlDownload Node
 
    Download file from remote url and get file path
 
-4. UploadAnything Node
+5. UploadAnything Node
 
    Upload any file and get file path
 
