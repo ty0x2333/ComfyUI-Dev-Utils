@@ -95,12 +95,13 @@ let runningData = null;
 
 function buildTableHtml() {
     const tableBody = $el("tbody")
+    const tableFooter = $el("tfoot", {style: {"background": "var(--comfy-input-bg)"}})
     const table = $el("table", {
         textAlign: "right",
         border: "1px solid var(--border-color)",
         style: {"border-spacing": "0"}
     }, [
-        $el("thead", [
+        $el("thead", {style: {"background": "var(--comfy-input-bg)"}}, [
             $el("tr", [
                 $el("th", {"textContent": "Node Id"}),
                 $el("th", {"textContent": "Node Title"}),
@@ -109,29 +110,41 @@ function buildTableHtml() {
                 $el("th", {"textContent": "Current / Pre Diff"})
             ])
         ]),
-        tableBody
+        tableBody,
+        tableFooter
     ]);
     if (!runningData?.nodes_execution_time) {
         return table;
     }
-    runningData.nodes_execution_time.forEach(function (item) {
-        const nodeId = item.node;
-        const node = app.graph.getNodeById(nodeId)
-        const title = node?.title ?? nodeId
-        const preExecutionTime = lastRunningDate?.nodes_execution_time?.find(x => x.node === nodeId)?.execution_time
+
+    function diff(current, pre) {
         let diffText;
         let diffColor;
-        if (preExecutionTime) {
-            const diffTime = item.execution_time - preExecutionTime;
-            const diffPercentText = `${(diffTime * 100 / preExecutionTime).toFixed(2)}%`;
+        if (pre) {
+            const diffTime = current - pre;
+            const diffPercentText = `${(diffTime * 100 / pre).toFixed(2)}%`;
             if (diffTime > 0) {
                 diffColor = 'red';
                 diffText = `+${formatExecutionTime(diffTime)} / +${diffPercentText}`;
+            } else if (diffPercentText === '0.00%') {
+                diffColor = 'white';
+                diffText = formatExecutionTime(diffTime);
             } else {
                 diffColor = 'green';
                 diffText = `${formatExecutionTime(diffTime)} / ${diffPercentText}`;
             }
         }
+        return [diffColor, diffText]
+    }
+
+    runningData.nodes_execution_time.forEach(function (item) {
+        const nodeId = item.node;
+        const node = app.graph.getNodeById(nodeId)
+        const title = node?.title ?? nodeId
+        const preExecutionTime = lastRunningDate?.nodes_execution_time?.find(x => x.node === nodeId)?.execution_time
+
+        const [diffColor, diffText] = diff(item.execution_time, preExecutionTime);
+
         tableBody.append($el("tr", {
             onclick: () => {
                 if (node) {
@@ -155,7 +168,42 @@ function buildTableHtml() {
             }),
         ]))
     });
+    if (runningData.total_execution_time !== null) {
+        const [diffColor, diffText] = diff(runningData.total_execution_time, lastRunningDate?.total_execution_time);
+        tableFooter.append($el("tr", [
+            $el("td", {style: {"textAlign": "right"}, "textContent": 'Total'}),
+            $el("td", {style: {"textAlign": "right"}, "textContent": ''}),
+            $el("td", {
+                style: {"textAlign": "right"},
+                "textContent": formatExecutionTime(runningData.total_execution_time)
+            }),
+            $el("td", {
+                style: {"textAlign": "right"},
+                "textContent": lastRunningDate?.total_execution_time ? formatExecutionTime(lastRunningDate?.total_execution_time) : undefined
+            }),
+            $el("td", {
+                style: {
+                    "textAlign": "right",
+                    "color": diffColor
+                },
+                "textContent": diffText
+            }),
+        ]))
+    }
     return table;
+}
+
+function refreshTable() {
+    app.graph._nodes.forEach(function (node) {
+        if (node.comfyClass === "TY_ExecutionTime" && node.widgets) {
+            const widget = node.widgets[0];
+            widget.inputEl.replaceChild(buildTableHtml(), widget.inputEl.firstChild);
+            const computeSize = node.computeSize();
+            const newSize = [Math.max(node.size[0], computeSize[0]), Math.max(node.size[1], computeSize[1])];
+            node.setSize(newSize);
+            app.graph.setDirtyCanvas(true);
+        }
+    });
 }
 
 app.registerExtension({
@@ -165,8 +213,6 @@ app.registerExtension({
         api.addEventListener("executing", ({detail}) => {
             const nodeId = detail;
             if (!nodeId) { // Finish
-                stopRefreshTimer();
-                lastRunningDate = runningData;
                 return
             }
             const node = app.graph.getNodeById(nodeId)
@@ -191,30 +237,29 @@ app.registerExtension({
                 } else {
                     runningData.nodes_execution_time.push(data)
                 }
-                app.graph._nodes.forEach(function (node) {
-                    if (node.comfyClass === "TY_ExecutionTime" && node.widgets) {
-                        const widget = node.widgets[0];
-                        widget.inputEl.replaceChild(buildTableHtml(), widget.inputEl.firstChild);
-                        const computeSize = node.computeSize();
-                        const newSize = [Math.max(node.size[0], computeSize[0]), Math.max(node.size[1], computeSize[1])];
-                        node.setSize(newSize);
-                        app.graph.setDirtyCanvas(true);
-                    }
-                });
+                refreshTable();
             }
         });
 
         api.addEventListener("execution_start", ({detail}) => {
+            lastRunningDate = runningData;
             app.graph._nodes.forEach(function (node) {
                 delete node.ty_et_start_time
                 delete node.ty_et_execution_time
             });
             runningData = {
                 prompt_id: detail.prompt_id,
-                nodes_execution_time: []
+                nodes_execution_time: [],
+                total_execution_time: null
             };
             startRefreshTimer();
         });
+
+        api.addEventListener("TyDev-Utils.ExecutionTime.execution_end", ({detail}) => {
+            stopRefreshTimer();
+            runningData.total_execution_time = detail.execution_time;
+            refreshTable();
+        })
     },
     async nodeCreated(node, app) {
         if (!node.ty_et_swizzled) {
