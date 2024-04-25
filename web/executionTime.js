@@ -93,13 +93,45 @@ function setupClearExecutionCacheMenu() {
 let lastRunningDate = null;
 let runningData = null;
 
+
+// https://stackoverflow.com/a/56370447
+function exportTable(table, separator = ',') {
+    // Select rows from table_id
+    var rows = table.querySelectorAll('tr');
+    // Construct csv
+    var csv = [];
+    for (var i = 0; i < rows.length; i++) {
+        var row = [], cols = rows[i].querySelectorAll('td, th');
+        for (var j = 0; j < cols.length; j++) {
+            // Clean innertext to remove multiple spaces and jumpline (break csv)
+            var data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ')
+            // Escape double-quote with double-double-quote (see https://stackoverflow.com/questions/17808511/properly-escape-a-double-quote-in-csv)
+            data = data.replace(/"/g, '""');
+            // Push escaped string
+            row.push('"' + data + '"');
+        }
+        csv.push(row.join(separator));
+    }
+    var csv_string = csv.join('\n');
+    // Download it
+    var filename = 'execution_time' + new Date().toLocaleDateString() + '.csv';
+    var link = document.createElement('a');
+    link.style.display = 'none';
+    link.setAttribute('target', '_blank');
+    link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv_string));
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
 function buildTableHtml() {
     const tableBody = $el("tbody")
     const tableFooter = $el("tfoot", {style: {"background": "var(--comfy-input-bg)"}})
     const table = $el("table", {
         textAlign: "right",
         border: "1px solid var(--border-color)",
-        style: {"border-spacing": "0"}
+        style: {"border-spacing": "0", "font-size": "14px"}
     }, [
         $el("thead", {style: {"background": "var(--comfy-input-bg)"}}, [
             $el("tr", [
@@ -196,8 +228,11 @@ function buildTableHtml() {
 function refreshTable() {
     app.graph._nodes.forEach(function (node) {
         if (node.comfyClass === "TY_ExecutionTime" && node.widgets) {
-            const widget = node.widgets[0];
-            widget.inputEl.replaceChild(buildTableHtml(), widget.inputEl.firstChild);
+            const tableWidget = node.widgets.find((w) => w.name === "Table");
+            if (!tableWidget) {
+                return;
+            }
+            tableWidget.inputEl.replaceChild(buildTableHtml(), tableWidget.inputEl.firstChild);
             const computeSize = node.computeSize();
             const newSize = [Math.max(node.size[0], computeSize[0]), Math.max(node.size[1], computeSize[1])];
             node.setSize(newSize);
@@ -289,18 +324,20 @@ app.registerExtension({
             nodeType.prototype.onNodeCreated = function () {
                 nodeCreated?.apply(this, arguments);
 
-                const widget = {
+                const tableWidget = {
                     type: "HTML",
-                    name: "table",
+                    name: "Table",
                     draw: function (ctx, node, widgetWidth, y, widgetHeight) {
-                        const margin = 0;
+                        const marginHorizontal = 14;
+                        const marginTop = 0;
+                        const marginBottom = 14;
                         const elRect = ctx.canvas.getBoundingClientRect();
                         const transform = new DOMMatrix()
                             .scaleSelf(elRect.width / ctx.canvas.width, elRect.height / ctx.canvas.height)
                             .multiplySelf(ctx.getTransform())
-                            .translateSelf(margin, margin + y);
+                            .translateSelf(marginHorizontal, marginTop + y);
 
-                        const x = Math.max(0, Math.round(ctx.getTransform().a * (node.size[0] - this.inputEl.scrollWidth - 2 * margin) / 2));
+                        const x = Math.max(0, Math.round(ctx.getTransform().a * (node.size[0] - this.inputEl.scrollWidth - 2 * marginHorizontal) / 2));
                         Object.assign(
                             this.inputEl.style,
                             {
@@ -309,8 +346,8 @@ app.registerExtension({
                                 left: `${x}px`,
                                 top: `0px`,
                                 position: "absolute",
-                                maxWidth: `${widgetWidth - margin * 2}px`,
-                                maxHeight: `${node.size[1] - margin * 2 - y}px`,
+                                maxWidth: `${widgetWidth - marginHorizontal * 2}px`,
+                                maxHeight: `${node.size[1] - (marginTop + marginBottom) - y}px`,
                                 width: `auto`,
                                 height: `auto`,
                                 overflow: `auto`,
@@ -318,19 +355,23 @@ app.registerExtension({
                         );
                     },
                 };
-                widget.inputEl = $el("div");
+                tableWidget.inputEl = $el("div");
 
-                document.body.appendChild(widget.inputEl);
+                document.body.appendChild(tableWidget.inputEl);
 
-                this.addCustomWidget(widget);
+                this.addWidget("button", "Export CSV", "display: none", () => {
+                    exportTable(tableWidget.inputEl.firstChild)
+                });
+                this.addCustomWidget(tableWidget);
+
                 this.onRemoved = function () {
-                    widget.inputEl.remove();
+                    tableWidget.inputEl.remove();
                 };
                 this.serialize_widgets = false;
 
                 const tableElem = buildTableHtml();
 
-                widget.inputEl.appendChild(tableElem)
+                tableWidget.inputEl.appendChild(tableElem)
 
                 const computeSize = nodeType.prototype.computeSize || LGraphNode.prototype.computeSize;
                 nodeType.prototype.computeSize = function () {
@@ -338,12 +379,14 @@ app.registerExtension({
                     if (this.flags?.collapsed || !this.widgets) {
                         return originSize;
                     }
-                    const paddingBottom = 60;
-                    const widget = this.widgets[0];
-                    const tableElem = widget.inputEl.firstChild;
+                    const tableWidget = this.widgets.find((w) => w.name === "Table");
+                    if (!tableWidget) {
+                        return originSize;
+                    }
+                    const tableElem = tableWidget.inputEl.firstChild;
                     const tableBoundingClientRect = tableElem.getBoundingClientRect();
                     const tableSize = [Math.round(tableBoundingClientRect.width), Math.round(tableBoundingClientRect.height)];
-                    return [Math.max(tableSize[0], originSize[0]), Math.max(tableSize[1] + paddingBottom, originSize[1])];
+                    return [Math.max(tableSize[0], originSize[0]), tableSize[1] + originSize[1]];
                 }
                 this.setSize(this.computeSize());
             }
