@@ -59,7 +59,6 @@ app.registerExtension({
                                 node.pos[1]
                             ];
                             app.canvas.selectNode(rerouteNode, false);
-                            node.connect(slot.slot, rerouteNode, 0);
                             const linkInfos = [];
                             for (var i = 0, l = slot.output.links.length; i < l; i++) {
                                 var linkId = slot.output.links[i];
@@ -73,6 +72,7 @@ app.registerExtension({
                                 var targetNode = node.graph.getNodeById(linkInfo.target_id);
                                 rerouteNode.connect(0, targetNode, linkInfo.target_slot);
                             })
+                            node.connect(slot.slot, rerouteNode, 0);
                         }
                         node.graph.afterChange();
                         node.setDirtyCanvas(true, true);
