@@ -336,7 +336,7 @@ app.registerExtension({
                 const thHeight = tableElem.tHead.getBoundingClientRect().height;
                 const thUnscaledHeight = 24;
                 const tableUnscaledHeight = thUnscaledHeight * tableHeight / thHeight;
-                const autoResizeMaxHeight = 200;
+                const autoResizeMaxHeight = 300;
                 return [Math.max(originSize[0], 480), originSize[1] + Math.min(tableUnscaledHeight, autoResizeMaxHeight) - LiteGraph.NODE_WIDGET_HEIGHT];
             }
 
