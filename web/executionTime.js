@@ -128,18 +128,19 @@ function exportTable(table, separator = ',') {
 function buildTableHtml() {
     const tableBody = $el("tbody")
     const tableFooter = $el("tfoot", {style: {"background": "var(--comfy-input-bg)"}})
+    const headerThStyle = {"white-space": "nowrap"}
     const table = $el("table", {
         textAlign: "right",
         border: "1px solid var(--border-color)",
-        style: {"border-spacing": "0", "font-size": "14px"}
+        style: {"border": "none", "border-spacing": "0", "font-size": "14px", "width": "100%"}
     }, [
         $el("thead", {style: {"background": "var(--comfy-input-bg)"}}, [
             $el("tr", [
-                $el("th", {"textContent": "Node Id"}),
-                $el("th", {"textContent": "Node Title"}),
-                $el("th", {"textContent": "Current Time"}),
-                $el("th", {"textContent": "Per Time"}),
-                $el("th", {"textContent": "Current / Pre Diff"})
+                $el("th", {style: headerThStyle, "textContent": "Node Id"}),
+                $el("th", {style: headerThStyle, "textContent": "Node Title"}),
+                $el("th", {style: headerThStyle, "textContent": "Current Time"}),
+                $el("th", {style: headerThStyle, "textContent": "Per Time"}),
+                $el("th", {style: headerThStyle, "textContent": "Current / Pre Diff"})
             ])
         ]),
         tableBody,
@@ -320,6 +321,25 @@ app.registerExtension({
     },
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
         if (nodeType.comfyClass === "TY_ExecutionTime") {
+            const originComputeSize = nodeType.prototype.computeSize || LGraphNode.prototype.computeSize;
+            nodeType.prototype.computeSize = function () {
+                const originSize = originComputeSize.apply(this, arguments);
+                if (this.flags?.collapsed || !this.widgets) {
+                    return originSize;
+                }
+                const tableWidget = this.widgets.find((w) => w.name === "Table");
+                if (!tableWidget) {
+                    return originSize;
+                }
+                const tableElem = tableWidget.inputEl.firstChild;
+                const tableHeight = tableElem.getBoundingClientRect().height;
+                const thHeight = tableElem.tHead.getBoundingClientRect().height;
+                const thUnscaledHeight = 24;
+                const tableUnscaledHeight = thUnscaledHeight * tableHeight / thHeight;
+                const autoResizeMaxHeight = 200;
+                return [Math.max(originSize[0], 480), originSize[1] + Math.min(tableUnscaledHeight, autoResizeMaxHeight) - LiteGraph.NODE_WIDGET_HEIGHT];
+            }
+
             const nodeCreated = nodeType.prototype.onNodeCreated;
             nodeType.prototype.onNodeCreated = function () {
                 nodeCreated?.apply(this, arguments);
@@ -346,10 +366,8 @@ app.registerExtension({
                                 left: `${x}px`,
                                 top: `0px`,
                                 position: "absolute",
-                                maxWidth: `${widgetWidth - marginHorizontal * 2}px`,
-                                maxHeight: `${node.size[1] - (marginTop + marginBottom) - y}px`,
-                                width: `auto`,
-                                height: `auto`,
+                                width: `${widgetWidth - marginHorizontal * 2}px`,
+                                height: `${node.size[1] - (marginTop + marginBottom) - y}px`,
                                 overflow: `auto`,
                             }
                         );
@@ -373,21 +391,6 @@ app.registerExtension({
 
                 tableWidget.inputEl.appendChild(tableElem)
 
-                const computeSize = nodeType.prototype.computeSize || LGraphNode.prototype.computeSize;
-                nodeType.prototype.computeSize = function () {
-                    const originSize = computeSize.apply(this, arguments);
-                    if (this.flags?.collapsed || !this.widgets) {
-                        return originSize;
-                    }
-                    const tableWidget = this.widgets.find((w) => w.name === "Table");
-                    if (!tableWidget) {
-                        return originSize;
-                    }
-                    const tableElem = tableWidget.inputEl.firstChild;
-                    const tableBoundingClientRect = tableElem.getBoundingClientRect();
-                    const tableSize = [Math.round(tableBoundingClientRect.width), Math.round(tableBoundingClientRect.height)];
-                    return [Math.max(tableSize[0], originSize[0]), tableSize[1] + originSize[1]];
-                }
                 this.setSize(this.computeSize());
             }
         }
