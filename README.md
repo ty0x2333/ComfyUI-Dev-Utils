@@ -33,7 +33,9 @@ Features
       execution time and the last execution time, as well as their differences, will be displayed.
       <details open>
       <summary>Preview</summary>
-      <img src="https://github.com/ty0x2333/ComfyUI-Dev-Utils/wiki/images/execution-time-node.png" style="height: 150px">
+
+      <img height="150" alt="execution-time-node" src="https://github.com/ty0x2333/ComfyUI-Dev-Utils/assets/7489176/5301f97d-0b38-4a21-859a-12ef06fb0b43">
+
       </details>
     - Add a "Clear Execution Cache" button to the sidebar menu. Click it to clear the current cache(unload models and
       free memory).
@@ -45,7 +47,7 @@ Features
    <details open>
    <summary>Usage Example (Video)</summary>
 
-   [Execution Time Analysis Demo](https://github.com/ty0x2333/ComfyUI-Dev-Utils/assets/7489176/6a7a2a36-85cf-4cff-b916-796ea2e43d5f)
+    [Execution Time Analysis Demo](https://github.com/ty0x2333/ComfyUI-Dev-Utils/assets/7489176/1345f5db-c7b8-482c-9b71-de2da4d9ca09)
 
    </details>
 
