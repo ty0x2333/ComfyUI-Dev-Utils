@@ -17,7 +17,7 @@ $ cd custom_nodes
 $ git clone https://github.com/ty0x2333/ComfyUI-Dev-Utils.git
 ```
 
-**Finally, restart the device**
+**Finally, restart ComfyUI**
 
 Features
 ---
