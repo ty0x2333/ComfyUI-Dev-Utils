@@ -4,9 +4,20 @@ ComfyUI-Dev-Utils
 Installation
 ---
 
-1. cd custom_nodes
-2. git clone https://github.com/ty0x2333/ComfyUI-Dev-Utils.git
-3. Restart ComfyUI
+#### ComfyUI-Manager
+
+Guide: [ComfyUI-Manager How-to-use](https://github.com/ltdrdata/ComfyUI-Manager#how-to-use)
+
+#### Manual
+
+In your ComfyUI directory:
+
+```shell
+$ cd custom_nodes
+$ git clone https://github.com/ty0x2333/ComfyUI-Dev-Utils.git
+```
+
+**Finally, restart the device**
 
 Features
 ---
