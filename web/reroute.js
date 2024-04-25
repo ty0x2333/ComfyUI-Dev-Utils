@@ -103,9 +103,12 @@ LGraphCanvas.prototype.deleteSelectedNodes = function () {
         if (node.block_delete) {
             continue;
         }
-        if(node.inputs && node.inputs.length && node.outputs && node.outputs.length && LiteGraph.isValidConnection( node.inputs[0].type, node.outputs[0].type ) && node.inputs[0].link && node.outputs[0].links && node.outputs[0].links.length )
-        {
-            var input_link = node.graph.links[ node.inputs[0].link ];
+        if (
+            node.inputs && node.inputs.length && node.outputs && node.outputs.length &&
+            LiteGraph.isValidConnection(node.inputs[0].type, node.outputs[0].type) &&
+            node.inputs[0].link && node.outputs[0].links && node.outputs[0].links.length
+        ) {
+            var input_link = node.graph.links[node.inputs[0].link];
             var output_links = node.outputs[0].links.map(function (link_id) {
                 return node.graph.links[link_id]
             })
@@ -114,9 +117,9 @@ LGraphCanvas.prototype.deleteSelectedNodes = function () {
 
             if (input_node && output_nodes) {
                 for (var outputIndex = 0; outputIndex < output_nodes.length; ++outputIndex) {
-                    const output_node =  output_nodes[outputIndex];
+                    const output_node = output_nodes[outputIndex];
                     const output_link = output_links[outputIndex];
-                    input_node.connect( input_link.origin_slot, output_node, output_link.target_slot );
+                    input_node.connect(input_link.origin_slot, output_node, output_link.target_slot);
                 }
             }
         }
