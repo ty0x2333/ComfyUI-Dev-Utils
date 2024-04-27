@@ -15,6 +15,8 @@ In your ComfyUI directory:
 ```shell
 $ cd custom_nodes
 $ git clone https://github.com/ty0x2333/ComfyUI-Dev-Utils.git
+$ cd ComfyUI-Dev-Utils
+$ pip install requirements.txt
 ```
 
 **Finally, restart ComfyUI**
@@ -57,11 +59,15 @@ Features
 
    `LogConsole` automatically captures the output of `print`, `logging`, `stdout` and `stderr`. Then send it to the web page via SSE.
 
+   <img width="600" alt="2024-04-28 07 42 37" src="https://github.com/ty0x2333/ComfyUI-Dev-Utils/assets/7489176/08a4da36-8cf7-4ff9-8fc1-1e1f955cd317">
+
+
    `LogConsole` Feautes:
 
    - **based on SSE, not Websocket. It will not affect the performance of ComfyUI's core and other functions.**
    - Support text color. Differentiate error logs by color.
    - Lazy startup, only starts capturing logs when needed.
+   - Supports completely disabling LogConsole.
 
    <br/>
    <details open>
@@ -119,6 +125,7 @@ Reference
 - [Kosinkadink/ComfyUI-VideoHelperSuite](https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite)
 - [chrisgoringe/cg-quicknodes](https://github.com/chrisgoringe/cg-quicknodes)
 - [tzwm/comfyui-profiler](https://github.com/tzwm/comfyui-profiler)
+- [xtermjs/xterm.js](https://github.com/xtermjs/xterm.js)
 
 License
 ---
