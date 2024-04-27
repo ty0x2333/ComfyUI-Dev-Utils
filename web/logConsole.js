@@ -18,8 +18,6 @@ function addCss(src) {
     });
 }
 
-const logSSEUrl = api.apiURL(`/ty-dev-utils/log?client_id=${api.clientId}`);
-
 const getValue = (key, defaultValue) => {
     const storageKey = localStorage.getItem("TyDev-Utils.LogConsole." + key);
     if (storageKey && !isNaN(+storageKey)) {
@@ -133,7 +131,6 @@ app.registerExtension({
 
                         // target.setAttribute('data-x', x)
                         target.setAttribute('data-y', y)
-                        console.log(`y: ${y}, target.style.height: ${target.style.height}`)
                         event.preventDefault();
                         // target.textContent = Math.round(event.rect.width) + '\u00D7' + Math.round(event.rect.height)
                     }
@@ -206,6 +203,7 @@ app.registerExtension({
         if ([EventSource.OPEN, EventSource.CONNECTING].includes(this.eventSource?.readyState)) {
             return
         }
+        const logSSEUrl = api.apiURL(`/ty-dev-utils/log?client_id=${api.clientId}`);
         this.eventSource = new EventSource(logSSEUrl);
         this.eventSource.onopen = () => {
             // console.log('EventSource connected')
@@ -220,7 +218,7 @@ app.registerExtension({
 
         const messageHandler = (event) => {
             this.terminal?.write(event.data)
-            console.log(event.data);
+            // console.log(event.data);
         }
 
         this.eventSource.addEventListener("message", messageHandler);
