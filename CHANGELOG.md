@@ -1,3 +1,14 @@
+0.3.0
+---
+
+### New Feature
+
+1. Add Log Console
+
+   <img width="600" alt="2024-04-28 07 42 37" src="https://github.com/ty0x2333/ComfyUI-Dev-Utils/assets/7489176/5b44f45c-9fda-4478-a047-b61576ec03dd">
+
+
+
 0.2.0
 ---
 
