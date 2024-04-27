@@ -1,5 +1,6 @@
 ComfyUI-Dev-Utils
 ===
+[![GitHub Tag](https://img.shields.io/github/v/tag/ty0x2333/ComfyUI-Dev-Utils)](https://github.com/ty0x2333/ComfyUI-Dev-Utils/tags)
 
 Installation
 ---
@@ -15,6 +16,8 @@ In your ComfyUI directory:
 ```shell
 $ cd custom_nodes
 $ git clone https://github.com/ty0x2333/ComfyUI-Dev-Utils.git
+$ cd ComfyUI-Dev-Utils
+$ pip install -r requirements.txt
 ```
 
 **Finally, restart ComfyUI**
@@ -51,7 +54,31 @@ Features
 
    </details>
 
-3. Reroute Enhancement
+2. Log Console
+
+   Provide a Console panel to display **Python logs** (**not** Javascript console.log).
+
+   `LogConsole` automatically captures the output of `print`, `logging`, `stdout` and `stderr`. Then send it to the web page via SSE.
+
+   <img width="600" alt="2024-04-28 07 42 37" src="https://github.com/ty0x2333/ComfyUI-Dev-Utils/assets/7489176/08a4da36-8cf7-4ff9-8fc1-1e1f955cd317">
+
+
+   `LogConsole` Feautes:
+
+   - **based on SSE, not Websocket. It will not affect the performance of ComfyUI's core and other functions.**
+   - Support text color. Differentiate error logs by color.
+   - Lazy startup, only starts capturing logs when needed.
+   - Supports completely disabling LogConsole.
+
+   <br/>
+   <details open>
+   <summary>Usage Example (Video)</summary>
+
+    [LogConsole Demo](https://github.com/ty0x2333/ComfyUI-Dev-Utils/assets/7489176/f8295843-80ae-43e5-9702-3fd6c1962519)
+
+   </details>
+
+4. Reroute Enhancement
     - Add "Reroute" option to node slot menu.
 
       <details open>
@@ -84,11 +111,11 @@ Features
       </table>
       </details>
 
-4. `UrlDownload` Node
+5. `UrlDownload` Node
 
    Download file from remote url and get file path
 
-5. `UploadAnything` Node
+6. `UploadAnything` Node
 
    Upload any file and get file path
 
@@ -99,6 +126,7 @@ Reference
 - [Kosinkadink/ComfyUI-VideoHelperSuite](https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite)
 - [chrisgoringe/cg-quicknodes](https://github.com/chrisgoringe/cg-quicknodes)
 - [tzwm/comfyui-profiler](https://github.com/tzwm/comfyui-profiler)
+- [xtermjs/xterm.js](https://github.com/xtermjs/xterm.js)
 
 License
 ---
