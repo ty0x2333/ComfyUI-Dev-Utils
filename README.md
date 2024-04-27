@@ -17,7 +17,7 @@ In your ComfyUI directory:
 $ cd custom_nodes
 $ git clone https://github.com/ty0x2333/ComfyUI-Dev-Utils.git
 $ cd ComfyUI-Dev-Utils
-$ pip install requirements.txt
+$ pip install -r requirements.txt
 ```
 
 **Finally, restart ComfyUI**
