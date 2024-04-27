@@ -47,7 +47,8 @@ class LogCatcher:
         self.origin_stream = None
 
     def write(self, value):
-        log_queue.put_nowait(value)
+        if value:
+            log_queue.put_nowait(value)
         self.origin_stream.write(value)
 
     def __getattr__(self, item):

@@ -1,0 +1,41 @@
+.tydev-utils-log-console-container {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    height: 240px;
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.tydev-utils-log-console-control {
+    height: 20px;
+    background: var(--comfy-menu-bg);
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    cursor: row-resize;
+
+    .drag-handle {
+        width: 32px;
+        height: 20px;
+        line-height: 8px;
+        cursor: row-resize;
+    }
+
+    .drag-handle::after {
+        content: '...... ......';
+    }
+}
+
+#tydev-utils-log-console {
+    position: absolute;
+    top: 20px;
+    bottom: 8px;
+    left: 0;
+    right: 0;
+}
+
+.xterm-viewport {
+    background: transparent !important;
+}
