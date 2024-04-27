@@ -51,7 +51,27 @@ Features
 
    </details>
 
-3. Reroute Enhancement
+2. Log Console
+
+   Provide a Console panel to display **Python logs** (**not** Javascript console.log).
+
+   `LogConsole` automatically captures the output of `print`, `logging`, `stdout` and `stderr`. Then send it to the web page via SSE.
+
+   `LogConsole` Feautes:
+
+   - **based on SSE, not Websocket. It will not affect the performance of ComfyUI's core and other functions.**
+   - Support text color. Differentiate error logs by color.
+   - Lazy startup, only starts capturing logs when needed.
+
+   <br/>
+   <details open>
+   <summary>Usage Example (Video)</summary>
+
+    [LogConsole Demo](https://github.com/ty0x2333/ComfyUI-Dev-Utils/assets/7489176/f8295843-80ae-43e5-9702-3fd6c1962519)
+
+   </details>
+
+4. Reroute Enhancement
     - Add "Reroute" option to node slot menu.
 
       <details open>
@@ -84,11 +104,11 @@ Features
       </table>
       </details>
 
-4. `UrlDownload` Node
+5. `UrlDownload` Node
 
    Download file from remote url and get file path
 
-5. `UploadAnything` Node
+6. `UploadAnything` Node
 
    Upload any file and get file path
 
