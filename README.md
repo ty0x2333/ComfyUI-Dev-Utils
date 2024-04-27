@@ -1,5 +1,6 @@
 ComfyUI-Dev-Utils
 ===
+[![GitHub Tag](https://img.shields.io/github/v/tag/ty0x2333/ComfyUI-Dev-Utils)](https://github.com/ty0x2333/ComfyUI-Dev-Utils/tags)
 
 Installation
 ---
