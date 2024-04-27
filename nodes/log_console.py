@@ -4,7 +4,7 @@ import asyncio
 import io
 import logging
 import sys
-from typing import Optional, List
+from typing import Optional, List, Any
 
 from aiohttp import web
 from aiohttp_sse import sse_response, EventSourceResponse
@@ -14,8 +14,9 @@ from server import PromptServer
 
 class SSEHandler:
 
-    def __init__(self, client_id: Optional[str], response: EventSourceResponse):
+    def __init__(self, client_id: Optional[str], console_id: Optional[str], response: EventSourceResponse):
         self.client_id = client_id
+        self.console_id = console_id
         self.response = response
 
     @property
@@ -30,31 +31,38 @@ log_queue = asyncio.Queue()
 
 
 class LogCatcher:
+    RED = "\x1b[31;20m"
+    RESET = "\x1b[0m"
 
-    def __init__(self, stream_name: str):
-        self.stream_name = stream_name
-        self.origin_stream = None
+    def __init__(self, obj: Any, attr_name: str, error: bool):
+        self.obj = obj
+        self.attr_name = attr_name
+        self.error = error
+        self.origin_value = None
 
     def start(self):
-        self.origin_stream = getattr(sys, self.stream_name)
-        setattr(sys, self.stream_name, self)
+        self.origin_value = getattr(self.obj, self.attr_name)
+        setattr(self.obj, self.attr_name, self)
 
     def stop(self):
-        setattr(sys, self.stream_name, self.origin_stream)
-        self.origin_stream = None
+        setattr(self.obj, self.attr_name, self.origin_value)
+        self.origin_value = None
 
     def write(self, value):
         if value:
-            log_queue.put_nowait(value)
-        self.origin_stream.write(value)
+            if self.error:
+                put_value = self.RED + value + self.RESET
+            else:
+                put_value = value
+            log_queue.put_nowait(put_value)
+        if self.origin_value:
+            self.origin_value.write(value)
 
     def __getattr__(self, item):
-        return getattr(self.origin_stream, item)
+        return getattr(self.origin_value, item)
 
 
-stdout_log_catcher = LogCatcher('stdout')
-
-stderr_log_catcher = LogCatcher('stderr')
+LOG_CATCHERS: Optional[List[LogCatcher]] = None
 
 
 class LogListener:
@@ -65,12 +73,16 @@ class LogListener:
         self.handlers: List[SSEHandler] = []
         self._task: Optional[asyncio.Task] = None
 
-    def start(self):
-        if self._task:
+    @property
+    def is_started(self) -> bool:
+        return self._task is not None
+
+    def start_if_needed(self):
+        if self.is_started:
             return
         try:
             loop = asyncio.get_event_loop()
-        except:
+        except:  # noqa
             loop = asyncio.new_event_loop()
 
         self._task = loop.create_task(self._monitor())
@@ -78,23 +90,23 @@ class LogListener:
     def append_handler(self, handler: SSEHandler):
         if not handler.is_connected:
             return
-        print(f"log handler, client [{handler.client_id}] connected")
+        print(f"[LogConsole] client [{handler.client_id}], console [{handler.console_id}], connected")
         self.handlers.append(handler)
 
-    async def handle(self, record):
-        def removeDisconnectedHandler(handler: SSEHandler):
-            print(f"log handler, client [{handler.client_id}] disconnected")
-            self.handlers.remove(handler)
+    def __remove_disconnected_handler(self, handler: SSEHandler):
+        print(f"[LogConsole] client [{handler.client_id}], console [{handler.console_id}], disconnected")
+        self.handlers.remove(handler)
 
+    async def handle(self, record):
         for handler in self.handlers[:]:
             if not handler.is_connected:
-                removeDisconnectedHandler(handler)
+                self.__remove_disconnected_handler(handler)
                 continue
 
             try:
                 await handler.send(record)
             except ConnectionResetError:
-                removeDisconnectedHandler(handler)
+                self.__remove_disconnected_handler(handler)
 
     async def _monitor(self):
         q = self.queue
@@ -107,39 +119,79 @@ class LogListener:
                 print(f"QueueListener._monitor fail: {e}")
 
     def stop(self):
-        if self._task:
-            self._task.cancel()
+        if not self._task:
+            return
+        self._task.cancel()
+        self._task = None
 
 
 log_listener = LogListener(queue=log_queue)
 
 
-@PromptServer.instance.routes.get("/ty-dev-utils/log")
+def start_log_catchers_if_needed():
+    global LOG_CATCHERS
+    if LOG_CATCHERS is not None:
+        return
+    print("Start Log Catchers...")
+    LOG_CATCHERS = []
+    stdout_log_catcher = LogCatcher(sys, 'stdout', error=False)
+    LOG_CATCHERS.append(stdout_log_catcher)
+    stderr_log_catcher = LogCatcher(sys, 'stderr', error=True)
+    LOG_CATCHERS.append(stderr_log_catcher)
+
+    for handler in logging.root.handlers:
+        if not isinstance(handler, logging.StreamHandler) or not handler.stream:
+            continue
+
+        if handler.stream.__class__.__name__ == 'ComfyUIManagerLogger':
+            if getattr(handler.stream, 'is_stdout'):
+                error = False
+            else:
+                error = True
+            LOG_CATCHERS.append(LogCatcher(handler, 'stream', error=error))
+            continue
+
+        if isinstance(handler.stream, io.TextIOWrapper):
+            if handler.stream.name == '<stdout>':
+                LOG_CATCHERS.append(LogCatcher(handler, 'stream', error=False))
+            elif handler.stream.name == '<stderr>':
+                LOG_CATCHERS.append(LogCatcher(handler, 'stream', error=True))
+
+    for catcher in LOG_CATCHERS:
+        catcher.start()
+
+
+def stop_log_catchers_if_needed():
+    global LOG_CATCHERS
+    if LOG_CATCHERS is None:
+        return
+    print("Stop Log Catchers...")
+    for catcher in LOG_CATCHERS:
+        catcher.stop()
+    LOG_CATCHERS = None
+
+
+@PromptServer.instance.routes.get("/ty-dev-utils/log")  # noqa
 async def log_stream(request: web.Request) -> web.StreamResponse:
     client_id = request.query.get('client_id')
+    console_id = request.query.get('console_id')
+    log_listener.start_if_needed()
+    start_log_catchers_if_needed()
+
     async with sse_response(request) as resp:
-        log_listener.append_handler(SSEHandler(response=resp, client_id=client_id))
+        log_listener.append_handler(SSEHandler(response=resp, client_id=client_id, console_id=console_id))
         while resp.is_connected():
             await asyncio.sleep(1)
 
     return resp
 
 
-log_listener.start()
+@PromptServer.instance.routes.post("/ty-dev-utils/disable-log")  # noqa
+async def disable_log_stream(request: web.Request) -> web.StreamResponse:
+    client_id = request.query.get('client_id')
+    console_id = request.query.get('console_id')
+    print(f"Disable Log Console. client id: {client_id}, console id: {console_id}")
+    log_listener.stop()
+    stop_log_catchers_if_needed()
 
-stdout_log_catcher.start()
-stderr_log_catcher.start()
-
-for handler in logging.root.handlers:
-    if not isinstance(handler, logging.StreamHandler) or not handler.stream:
-        continue
-
-    if handler.stream.__class__.__name__ == 'ComfyUIManagerLogger':
-        handler.stream = stderr_log_catcher
-        continue
-
-    if isinstance(handler.stream, io.TextIOWrapper):
-        if handler.stream.name == '<stdout>':
-            handler.stream = stdout_log_catcher
-        elif handler.stream.name == '<stderr>':
-            handler.stream = stderr_log_catcher
+    return web.json_response({'code': 0})

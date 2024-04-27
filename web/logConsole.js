@@ -30,6 +30,28 @@ const setValue = (key, value) => {
     localStorage.setItem("TyDev-Utils.LogConsole." + key, value);
 };
 
+let logConsoleEnabled = true;
+
+
+// https://stackoverflow.com/a/8809472
+function generateUUID() { // Public Domain/MIT
+    var d = new Date().getTime();//Timestamp
+    var d2 = ((typeof performance !== 'undefined') && performance.now && (performance.now() * 1000)) || 0;//Time in microseconds since page-load or 0 if unsupported
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16;//random number between 0 and 16
+        if (d > 0) {//Use timestamp until depleted
+            r = (d + r) % 16 | 0;
+            d = Math.floor(d / 16);
+        } else {//Use microseconds since page-load if supported
+            r = (d2 + r) % 16 | 0;
+            d2 = Math.floor(d2 / 16);
+        }
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+}
+
+let consoleId = generateUUID()
+
 app.registerExtension({
     name: "TyDev-Utils.LogConsole",
     eventSource: null,
@@ -81,15 +103,28 @@ app.registerExtension({
             clearButton,
             closeButton
         ])
-        const consoleStateElem = $el("div");
-        consoleStateElem.id = "tydev-utils-log-console-state";
-        const controlElem = $el("div.tydev-utils-log-console-control", [
+        const stateElem = $el("strong");
+        stateElem.id = "tydev-utils-log-console-state";
+        const consoleIdElem = $el("div", {
+            textContent: `ID: ${consoleId}`,
+            style: {
+                fontSize: '12px',
+                marginLeft: '8px',
+                lineHeight: '20px',
+                color: 'var(--descrip-text)'
+            }
+        });
+        const consoleStateElem = $el("div", {style: {display: 'flex', flexDirection: 'row'}}, [
+            stateElem,
+            consoleIdElem
+        ]);
+        const headerElem = $el("div.tydev-utils-log-console-control", [
             consoleStateElem,
             expandButton,
             consoleMenuContainer
         ]);
         const containerElem = $el("div.tydev-utils-log-console-container", [
-            controlElem,
+            headerElem,
             consoleElem
         ]);
         document.body.append(containerElem);
@@ -150,16 +185,13 @@ app.registerExtension({
                 inertia: true
             })
 
-        this.setupTerminal(containerElem, consoleElem);
-
         const setConsoleVisible = (visible) => {
             setValue('Visible', visible ? '1' : '0');
-            containerElem.hidden = !visible;
-            showButton.hidden = visible;
+            containerElem.hidden = !visible || !logConsoleEnabled;
+            showButton.hidden = visible || !logConsoleEnabled;
         }
 
-        const visible = getValue('Visible', '1') === '1';
-        setConsoleVisible(visible);
+        this.setupTerminal(containerElem, consoleElem);
 
         showButton.onclick = () => {
             setConsoleVisible(!(getValue('Visible', '1') === '1'));
@@ -168,12 +200,35 @@ app.registerExtension({
             setConsoleVisible(false);
         }
 
-        this.startSSE();
-
         api.addEventListener("reconnected", () => {
             if (this.eventSource) {
                 this.startSSE();
             }
+        });
+
+        const onEnabledChange = (value) => {
+            logConsoleEnabled = value;
+            if (value) {
+                this.startSSE();
+            } else {
+                this.stopSSE();
+            }
+            const visible = getValue('Visible', '1') === '1';
+            setConsoleVisible(visible);
+
+            if (!value) {
+                api.fetchApi(`/ty-dev-utils/disable-log?console_id=${consoleId}&client_id=${api.clientId}`, {
+                    method: "POST"
+                });
+            }
+        }
+
+        logConsoleEnabled = app.ui.settings.addSetting({
+            id: "TyDev-Utils.LogConsole.Enabled",
+            name: "TyDev LogConsole Enabled",
+            type: "boolean",
+            defaultValue: true,
+            onChange: onEnabledChange
         });
     },
     setupTerminal(containerElem, consoleElem) {
@@ -183,13 +238,20 @@ app.registerExtension({
         this.terminal = new Terminal({
             convertEol: true,
         });
+        const terminal = this.terminal;
+        this.terminal.attachCustomKeyEventHandler((e) => {
+            if (e.ctrlKey && e.keyCode === 76) {
+                // Ctrl + L
+                terminal.clear();
+                return false;
+            }
+        });
         const fitAddon = new FitAddon.FitAddon();
         this.terminal.loadAddon(fitAddon);
         this.terminal.open(consoleElem);
         fitAddon.fit();
 
         const resizeObserver = new ResizeObserver(function (entries) {
-            // since we are observing only a single element, so we access the first element in entries array
             try {
                 fitAddon && fitAddon.fit();
             } catch (err) {
@@ -203,7 +265,7 @@ app.registerExtension({
         if ([EventSource.OPEN, EventSource.CONNECTING].includes(this.eventSource?.readyState)) {
             return
         }
-        const logSSEUrl = api.apiURL(`/ty-dev-utils/log?client_id=${api.clientId}`);
+        const logSSEUrl = api.apiURL(`/ty-dev-utils/log?console_id=${consoleId}&client_id=${api.clientId}`);
         this.eventSource = new EventSource(logSSEUrl);
         this.eventSource.onopen = () => {
             // console.log('EventSource connected')
@@ -212,30 +274,39 @@ app.registerExtension({
 
         this.eventSource.onerror = (error) => {
             // console.error('EventSource failed', error)
-            this.eventSource.close()
+            this.eventSource.close();
             this.setSSEState(this.eventSource.readyState);
         };
 
         const messageHandler = (event) => {
-            this.terminal?.write(event.data)
+            this.terminal?.write(event.data);
             // console.log(event.data);
         }
 
         this.eventSource.addEventListener("message", messageHandler);
     },
+    stopSSE() {
+        this.eventSource?.close();
+        this.setSSEState(EventSource.CLOSED);
+        this.eventSource = null;
+    },
     setSSEState(state) {
-        let innerHTML
-        if (state === EventSource.OPEN) {
-            innerHTML = "<strong style='color: green'>CONNECTED</strong>";
-        } else if (state === EventSource.CONNECTING) {
-            innerHTML = "<strong style='color: gold'>CONNECTED</strong>";
-        } else if (state === EventSource.CLOSED) {
-            innerHTML = "<strong style='color: red'>CLOSED</strong>";
+        const stateElem = document.getElementById("tydev-utils-log-console-state");
+        if (stateElem) {
+            let stateTextColor;
+            let stateText;
+            if (state === EventSource.OPEN) {
+                stateTextColor = "green";
+                stateText = "CONNECTED";
+            } else if (state === EventSource.CONNECTING) {
+                stateTextColor = "gold";
+                stateText = "CONNECTING";
+            } else if (state === EventSource.CLOSED) {
+                stateTextColor = 'red';
+                stateText = "CLOSED";
+            }
+            stateElem.style.color = stateTextColor;
+            stateElem.innerText = stateText;
         }
-        const elem = document.getElementById("tydev-utils-log-console-state");
-        if (!elem) {
-            return;
-        }
-        elem.innerHTML = innerHTML;
     }
 });

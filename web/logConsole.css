@@ -9,6 +9,7 @@
 }
 
 .tydev-utils-log-console-control {
+    position: relative;
     padding: 0 16px;
     height: 20px;
     background: var(--comfy-menu-bg);
@@ -36,6 +37,12 @@
 }
 
 .expand-button {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    width: 60px;
+    position: absolute;
+    left: calc(50% - 30px);
     cursor: pointer;
 }
 
