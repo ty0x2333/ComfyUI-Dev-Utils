@@ -11,9 +11,6 @@ from aiohttp_sse import sse_response, EventSourceResponse
 
 from server import PromptServer
 
-# TODO: Test
-COUNTER = 0
-
 
 class SSEHandler:
 
@@ -115,15 +112,6 @@ class LogListener:
 
 
 log_listener = LogListener(queue=log_queue)
-
-
-# TODO: TEST
-@PromptServer.instance.routes.get("/ty-dev-utils/put")
-async def put_log(request: web.Request) -> web.StreamResponse:
-    global COUNTER
-    stdout_log_catcher.write(f"Hello {COUNTER}")
-    COUNTER += 1
-    return web.json_response({"code": 0})
 
 
 @PromptServer.instance.routes.get("/ty-dev-utils/log")
