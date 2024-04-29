@@ -86,7 +86,7 @@ app.registerExtension({
         const consoleElem = $el('div');
         consoleElem.id = 'tydev-utils-log-console';
 
-        const expandButton = $el("button.expand-button", [
+        const collapseButton = $el("button.expand-button", [
             $el("div.arrow.arrow-down", [$el("i.arrow-icon")])
         ]);
         const closeButton = $el("button.comfy-close-menu-btn", {textContent: 'x'});
@@ -120,7 +120,7 @@ app.registerExtension({
         ]);
         const headerElem = $el("div.tydev-utils-log-console-control", [
             consoleStateElem,
-            expandButton,
+            collapseButton,
             consoleMenuContainer
         ]);
         const containerElem = $el("div.tydev-utils-log-console-container", [
@@ -132,15 +132,20 @@ app.registerExtension({
         const defaultHeight = 240;
         const controlHeight = 20;
 
-        expandButton.onclick = () => {
-            const open = !expandButton.firstChild.className.includes("arrow-down");
-            if (open) {
-                expandButton.firstChild.className = "arrow arrow-down"
+        const setPanelCollapsed = (collapsed) => {
+            if (collapsed) {
+                collapseButton.firstChild.className = "arrow arrow-up"
             } else {
-                expandButton.firstChild.className = "arrow arrow-up"
+                collapseButton.firstChild.className = "arrow arrow-down"
             }
-            containerElem.style.height = `${open ? defaultHeight : controlHeight}px`
-            containerElem.setAttribute('data-y', open ? 0 : defaultHeight - controlHeight);
+            containerElem.style.height = `${collapsed ? controlHeight : defaultHeight}px`
+            containerElem.setAttribute('data-y', collapsed ? defaultHeight - controlHeight : 0);
+            setValue("Collapsed", collapsed ? '1' : '0')
+        };
+
+        collapseButton.onclick = () => {
+            const toCollapsed = !collapseButton.firstChild.className.includes("arrow-up");
+            setPanelCollapsed(toCollapsed);
         };
 
         interact(containerElem)
@@ -184,6 +189,9 @@ app.registerExtension({
 
                 inertia: true
             })
+
+        const collapsed = getValue('Collapsed', '0') === '1';
+        setPanelCollapsed(collapsed);
 
         const setConsoleVisible = (visible) => {
             setValue('Visible', visible ? '1' : '0');
