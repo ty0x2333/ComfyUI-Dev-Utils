@@ -146,7 +146,7 @@ function buildTableHtml() {
         tableBody,
         tableFooter
     ]);
-    if (!runningData?.nodes_execution_time) {
+    if (runningData?.nodes_execution_time === undefined) {
         return table;
     }
 
@@ -262,29 +262,29 @@ app.registerExtension({
             if (node) {
                 node.ty_et_execution_time = detail.execution_time;
             }
-            if (detail.prompt_id === runningData?.prompt_id) {
-                const index = runningData.nodes_execution_time.findIndex(x => x.node === detail.node);
-                const data = {
-                    node: detail.node,
-                    execution_time: detail.execution_time
-                };
-                if (index > 0) {
-                    runningData.nodes_execution_time[index] = data
-                } else {
-                    runningData.nodes_execution_time.push(data)
-                }
-                refreshTable();
+            const index = runningData.nodes_execution_time.findIndex(x => x.node === detail.node);
+            const data = {
+                node: detail.node,
+                execution_time: detail.execution_time
+            };
+            if (index > 0) {
+                runningData.nodes_execution_time[index] = data
+            } else {
+                runningData.nodes_execution_time.push(data)
             }
+            refreshTable();
         });
 
         api.addEventListener("execution_start", ({detail}) => {
+            if (runningData && runningData.total_execution_time == null) {
+                return;
+            }
             lastRunningDate = runningData;
             app.graph._nodes.forEach(function (node) {
                 delete node.ty_et_start_time
                 delete node.ty_et_execution_time
             });
             runningData = {
-                prompt_id: detail.prompt_id,
                 nodes_execution_time: [],
                 total_execution_time: null
             };
