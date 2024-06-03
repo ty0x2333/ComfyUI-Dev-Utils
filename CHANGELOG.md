@@ -1,3 +1,10 @@
+0.4.1
+---
+
+### New Feature
+
+1. Support [Comfy-Org/comfy-cli](https://github.com/Comfy-Org/comfy-cli)
+
 0.4.0
 ---
 
@@ -10,7 +17,7 @@
 1. Remove "prompt_id" judgment from ExecutionTime. (Compatible with `ComfyUI-Workflow-Component`)
 
    > ComfyUI-Workflow-Component will repeatedly call "execution_start"
-      with different "prompt_id" in the component.
+   with different "prompt_id" in the component.
 
 0.3.0
 ---
