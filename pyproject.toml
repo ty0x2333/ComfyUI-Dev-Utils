@@ -1,0 +1,15 @@
+[project]
+name = "comfyui-dev-utils"
+description = "Execution Time Analysis, Reroute Enhancement, Node collection for developers."
+version = "1.0.0"
+license = "LICENSE"
+dependencies = ["aiohttp-sse"]
+
+[project.urls]
+Repository = "https://github.com/ty0x2333/ComfyUI-Dev-Utils"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "ComfyUI-Dev-Utils"
+Icon = ""
