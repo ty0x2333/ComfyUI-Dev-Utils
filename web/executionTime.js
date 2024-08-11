@@ -386,6 +386,7 @@ app.registerExtension({
                     tableWidget.inputEl.remove();
                 };
                 this.serialize_widgets = false;
+                this.isVirtualNode = true;
 
                 const tableElem = buildTableHtml();
 
