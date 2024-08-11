@@ -1,3 +1,10 @@
+0.4.2
+---
+
+### Enhancement
+
+1. Ignore the ExecutionTime Node when saving the API.
+
 0.4.1
 ---
 

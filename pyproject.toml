@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-dev-utils"
 description = "Execution Time Analysis, Reroute Enhancement, Node collection for developers."
-dynamic = "0.4.1"
+dynamic = "0.4.2"
 license = { file = "LICENSE" }
 dependencies = ["aiohttp-sse"]
 
