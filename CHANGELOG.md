@@ -1,3 +1,15 @@
+0.4.3
+---
+
+### BUG Fix
+
+1. Fix BUG: The ExecutionTime Node is not working with the latest version of ComfyUI.
+   PR: https://github.com/ty0x2333/ComfyUI-Dev-Utils/pull/16
+
+   Thanks [hugovntr](https://github.com/hugovntr) .
+
+   ComfyUI commit: https://github.com/comfyanonymous/ComfyUI/tree/5cfe38f41c7091b0fd954877d9d7427a8b438b1a
+
 0.4.2
 ---
 
