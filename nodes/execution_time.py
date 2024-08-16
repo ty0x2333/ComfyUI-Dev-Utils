@@ -21,17 +21,14 @@ class ExecutionTime:
 
 CURRENT_START_EXECUTION_DATA = None
 
-origin_recursive_execute = execution.recursive_execute
+origin_execute = execution.execute
 
 
-def swizzle_origin_recursive_execute(server, prompt, outputs, current_item, extra_data, executed, prompt_id, outputs_ui,
-                                     object_storage):
+def swizzle_execute(server, dynprompt, caches, current_item, extra_data, executed, prompt_id, execution_list, pending_subgraph_results):
     unique_id = current_item
-    class_type = prompt[unique_id]['class_type']
+    class_type = dynprompt.get_node(unique_id)['class_type']
     last_node_id = server.last_node_id
-    result = origin_recursive_execute(server, prompt, outputs, current_item, extra_data, executed, prompt_id,
-                                      outputs_ui,
-                                      object_storage)
+    result = origin_execute(server, dynprompt, caches, current_item, extra_data, executed, prompt_id, execution_list, pending_subgraph_results)
     if CURRENT_START_EXECUTION_DATA:
         start_time = CURRENT_START_EXECUTION_DATA['nodes_start_perf_time'].get(unique_id)
         if start_time:
@@ -47,7 +44,7 @@ def swizzle_origin_recursive_execute(server, prompt, outputs, current_item, extr
     return result
 
 
-execution.recursive_execute = swizzle_origin_recursive_execute
+execution.execute = swizzle_execute
 
 origin_func = server.PromptServer.send_sync
 
