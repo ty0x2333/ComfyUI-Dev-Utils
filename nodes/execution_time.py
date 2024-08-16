@@ -21,33 +21,66 @@ class ExecutionTime:
 
 CURRENT_START_EXECUTION_DATA = None
 
-origin_recursive_execute = execution.recursive_execute
+
+def handle_execute(class_type, last_node_id, prompt_id, server, unique_id):
+    if not CURRENT_START_EXECUTION_DATA:
+        return
+    start_time = CURRENT_START_EXECUTION_DATA['nodes_start_perf_time'].get(unique_id)
+    if start_time:
+        end_time = time.perf_counter()
+        execution_time = end_time - start_time
+        if server.client_id is not None and last_node_id != server.last_node_id:
+            server.send_sync(
+                "TyDev-Utils.ExecutionTime.executed",
+                {"node": unique_id, "prompt_id": prompt_id, "execution_time": int(execution_time * 1000)},
+                server.client_id
+            )
+        print(f"#{unique_id} [{class_type}]: {execution_time:.2f}s")
 
 
-def swizzle_origin_recursive_execute(server, prompt, outputs, current_item, extra_data, executed, prompt_id, outputs_ui,
-                                     object_storage):
-    unique_id = current_item
-    class_type = prompt[unique_id]['class_type']
-    last_node_id = server.last_node_id
-    result = origin_recursive_execute(server, prompt, outputs, current_item, extra_data, executed, prompt_id,
-                                      outputs_ui,
-                                      object_storage)
-    if CURRENT_START_EXECUTION_DATA:
-        start_time = CURRENT_START_EXECUTION_DATA['nodes_start_perf_time'].get(unique_id)
-        if start_time:
-            end_time = time.perf_counter()
-            execution_time = end_time - start_time
-            if server.client_id is not None and last_node_id != server.last_node_id:
-                server.send_sync(
-                    "TyDev-Utils.ExecutionTime.executed",
-                    {"node": unique_id, "prompt_id": prompt_id, "execution_time": int(execution_time * 1000)},
-                    server.client_id
-                )
-            print(f"#{unique_id} [{class_type}]: {execution_time:.2f}s")
-    return result
+try:
+    origin_execute = execution.execute
 
 
-execution.recursive_execute = swizzle_origin_recursive_execute
+    def swizzle_execute(server, dynprompt, caches, current_item, extra_data, executed, prompt_id, execution_list,
+                        pending_subgraph_results):
+        unique_id = current_item
+        class_type = dynprompt.get_node(unique_id)['class_type']
+        last_node_id = server.last_node_id
+        result = origin_execute(server, dynprompt, caches, current_item, extra_data, executed, prompt_id,
+                                execution_list,
+                                pending_subgraph_results)
+        handle_execute(class_type, last_node_id, prompt_id, server, unique_id)
+        return result
+
+
+    execution.execute = swizzle_execute
+except Exception as e:
+    pass
+
+# region: Deprecated
+try:
+    # The execute method in the old version of ComfyUI is now deprecated.
+    origin_recursive_execute = execution.recursive_execute
+
+
+    def swizzle_origin_recursive_execute(server, prompt, outputs, current_item, extra_data, executed, prompt_id,
+                                         outputs_ui,
+                                         object_storage):
+        unique_id = current_item
+        class_type = prompt[unique_id]['class_type']
+        last_node_id = server.last_node_id
+        result = origin_recursive_execute(server, prompt, outputs, current_item, extra_data, executed, prompt_id,
+                                          outputs_ui,
+                                          object_storage)
+        handle_execute(class_type, last_node_id, prompt_id, server, unique_id)
+        return result
+
+
+    execution.recursive_execute = swizzle_origin_recursive_execute
+except Exception as e:
+    pass
+# endregion
 
 origin_func = server.PromptServer.send_sync
 
