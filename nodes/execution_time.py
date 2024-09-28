@@ -21,6 +21,12 @@ class ExecutionTime:
 
 CURRENT_START_EXECUTION_DATA = None
 
+def get_free_vram():
+    dev = model_management.get_torch_device()
+    if hasattr(dev, 'type') and (dev.type == 'cpu' or dev.type == 'mps'):
+        return 0
+    else:
+        return model_management.get_free_memory(dev)
 
 def handle_execute(class_type, last_node_id, prompt_id, server, unique_id):
     if not CURRENT_START_EXECUTION_DATA:
@@ -29,7 +35,7 @@ def handle_execute(class_type, last_node_id, prompt_id, server, unique_id):
     start_vram = CURRENT_START_EXECUTION_DATA['nodes_start_vram_time'].get(unique_id)
     if start_time:
         end_time = time.perf_counter()
-        end_vram = model_management.get_free_memory()
+        end_vram = get_free_vram()
         execution_time = end_time - start_time
         # use abs because it can be negative, that means the model_manager already loaded the model when we started profiling and cleared the model at the end
         # it's not super accurate for anything small but for large models it's really handy to know what the footprint is
@@ -119,7 +125,7 @@ def swizzle_send_sync(self, event, data, sid=None):
         else:
             node_id = data.get("node")
             CURRENT_START_EXECUTION_DATA['nodes_start_perf_time'][node_id] = time.perf_counter()
-            CURRENT_START_EXECUTION_DATA['nodes_start_vram_time'][node_id] = model_management.get_free_memory()
+            CURRENT_START_EXECUTION_DATA['nodes_start_vram_time'][node_id] = get_free_vram()
 
 
 server.PromptServer.send_sync = swizzle_send_sync
