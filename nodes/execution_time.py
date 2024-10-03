@@ -2,7 +2,7 @@ import time
 
 import execution
 import server
-
+import model_management
 
 class ExecutionTime:
     CATEGORY = "TyDev-Utils/Debug"
@@ -21,21 +21,32 @@ class ExecutionTime:
 
 CURRENT_START_EXECUTION_DATA = None
 
+def get_free_vram():
+    dev = model_management.get_torch_device()
+    if hasattr(dev, 'type') and (dev.type == 'cpu' or dev.type == 'mps'):
+        return 0
+    else:
+        return model_management.get_free_memory(dev)
 
 def handle_execute(class_type, last_node_id, prompt_id, server, unique_id):
     if not CURRENT_START_EXECUTION_DATA:
         return
     start_time = CURRENT_START_EXECUTION_DATA['nodes_start_perf_time'].get(unique_id)
+    start_vram = CURRENT_START_EXECUTION_DATA['nodes_start_vram_time'].get(unique_id)
     if start_time:
         end_time = time.perf_counter()
+        end_vram = get_free_vram()
         execution_time = end_time - start_time
+        # use abs because it can be negative, that means the model_manager already loaded the model when we started profiling and cleared the model at the end
+        # it's not super accurate for anything small but for large models it's really handy to know what the footprint is
+        vram_used = abs(end_vram - start_vram)
         if server.client_id is not None and last_node_id != server.last_node_id:
             server.send_sync(
                 "TyDev-Utils.ExecutionTime.executed",
-                {"node": unique_id, "prompt_id": prompt_id, "execution_time": int(execution_time * 1000)},
+                {"node": unique_id, "prompt_id": prompt_id, "execution_time": int(execution_time * 1000), "vram_used": vram_used  },
                 server.client_id
             )
-        print(f"#{unique_id} [{class_type}]: {execution_time:.2f}s")
+        print(f"#{unique_id} [{class_type}]: {execution_time:.2f}s - vram {vram_used}b")
 
 
 try:
@@ -91,7 +102,8 @@ def swizzle_send_sync(self, event, data, sid=None):
     if event == "execution_start":
         CURRENT_START_EXECUTION_DATA = dict(
             start_perf_time=time.perf_counter(),
-            nodes_start_perf_time={}
+            nodes_start_perf_time={},
+            nodes_start_vram_time={}
         )
 
     origin_func(self, event=event, data=data, sid=sid)
@@ -113,6 +125,7 @@ def swizzle_send_sync(self, event, data, sid=None):
         else:
             node_id = data.get("node")
             CURRENT_START_EXECUTION_DATA['nodes_start_perf_time'][node_id] = time.perf_counter()
+            CURRENT_START_EXECUTION_DATA['nodes_start_vram_time'][node_id] = get_free_vram()
 
 
 server.PromptServer.send_sync = swizzle_send_sync

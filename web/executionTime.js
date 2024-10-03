@@ -27,6 +27,17 @@ function formatExecutionTime(time) {
     return `${(time / 1000.0).toFixed(2)}s`
 }
 
+// Reference: https://gist.github.com/zentala/1e6f72438796d74531803cc3833c039c
+function formatBytes(bytes,decimals) {
+    if(bytes == 0) return '0 B';
+    var k = 1024,
+        dm = decimals || 2,
+        sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+        i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+ }
+
+
 // Reference: https://github.com/ltdrdata/ComfyUI-Manager/blob/main/js/comfyui-manager.js
 function drawBadge(node, orig, restArgs) {
     let ctx = restArgs[0];
@@ -35,7 +46,7 @@ function drawBadge(node, orig, restArgs) {
     if (!node.flags.collapsed && node.constructor.title_mode != LiteGraph.NO_TITLE) {
         let text = "";
         if (node.ty_et_execution_time !== undefined) {
-            text = formatExecutionTime(node.ty_et_execution_time);
+            text = formatExecutionTime(node.ty_et_execution_time) + " - vram " + formatBytes(node.ty_et_vram_used,2);
         } else if (node.ty_et_start_time !== undefined) {
             text = formatExecutionTime(LiteGraph.getTime() - node.ty_et_start_time);
         }
@@ -140,7 +151,8 @@ function buildTableHtml() {
                 $el("th", {style: headerThStyle, "textContent": "Node Title"}),
                 $el("th", {style: headerThStyle, "textContent": "Current Time"}),
                 $el("th", {style: headerThStyle, "textContent": "Per Time"}),
-                $el("th", {style: headerThStyle, "textContent": "Current / Pre Diff"})
+                $el("th", {style: headerThStyle, "textContent": "Current / Pre Diff"}),
+                $el("th", {style: headerThStyle, "textContent": "VRAM used"})
             ])
         ]),
         tableBody,
@@ -199,6 +211,7 @@ function buildTableHtml() {
                 },
                 "textContent": diffText
             }),
+            $el("td", {style: {"textAlign": "right"}, "textContent": formatBytes(item.vram_used,2)}),
         ]))
     });
     if (runningData.total_execution_time !== null) {
@@ -221,6 +234,7 @@ function buildTableHtml() {
                 },
                 "textContent": diffText
             }),
+            $el("td", {style: {"textAlign": "right"}, "textContent": ""}),
         ]))
     }
     return table;
@@ -261,11 +275,13 @@ app.registerExtension({
             const node = app.graph.getNodeById(detail.node)
             if (node) {
                 node.ty_et_execution_time = detail.execution_time;
+                node.ty_et_vram_used = detail.vram_used;
             }
             const index = runningData.nodes_execution_time.findIndex(x => x.node === detail.node);
             const data = {
                 node: detail.node,
-                execution_time: detail.execution_time
+                execution_time: detail.execution_time,
+                vram_used: detail.vram_used
             };
             if (index > 0) {
                 runningData.nodes_execution_time[index] = data
@@ -283,6 +299,7 @@ app.registerExtension({
             app.graph._nodes.forEach(function (node) {
                 delete node.ty_et_start_time
                 delete node.ty_et_execution_time
+                delete node.ty_et_vram_used
             });
             runningData = {
                 nodes_execution_time: [],
