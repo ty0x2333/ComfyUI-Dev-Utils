@@ -28,14 +28,16 @@ function formatExecutionTime(time) {
 }
 
 // Reference: https://gist.github.com/zentala/1e6f72438796d74531803cc3833c039c
-function formatBytes(bytes,decimals) {
-    if(bytes == 0) return '0 B';
-    var k = 1024,
+function formatBytes(bytes, decimals) {
+    if (bytes === 0) {
+        return '0 B'
+    }
+    const k = 1024,
         dm = decimals || 2,
         sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
         i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
- }
+}
 
 
 // Reference: https://github.com/ltdrdata/ComfyUI-Manager/blob/main/js/comfyui-manager.js
@@ -46,7 +48,7 @@ function drawBadge(node, orig, restArgs) {
     if (!node.flags.collapsed && node.constructor.title_mode != LiteGraph.NO_TITLE) {
         let text = "";
         if (node.ty_et_execution_time !== undefined) {
-            text = formatExecutionTime(node.ty_et_execution_time) + " - vram " + formatBytes(node.ty_et_vram_used,2);
+            text = formatExecutionTime(node.ty_et_execution_time) + " - vram " + formatBytes(node.ty_et_vram_used, 2);
         } else if (node.ty_et_start_time !== undefined) {
             text = formatExecutionTime(LiteGraph.getTime() - node.ty_et_start_time);
         }
@@ -151,8 +153,8 @@ function buildTableHtml() {
                 $el("th", {style: headerThStyle, "textContent": "Node Title"}),
                 $el("th", {style: headerThStyle, "textContent": "Current Time"}),
                 $el("th", {style: headerThStyle, "textContent": "Per Time"}),
-                $el("th", {style: headerThStyle, "textContent": "Current / Pre Diff"}),
-                $el("th", {style: headerThStyle, "textContent": "VRAM used"})
+                $el("th", {style: headerThStyle, "textContent": "Cur / Pre Time Diff"}),
+                $el("th", {style: headerThStyle, "textContent": "VRAM Used"})
             ])
         ]),
         tableBody,
@@ -182,6 +184,9 @@ function buildTableHtml() {
         return [diffColor, diffText]
     }
 
+    let max_execution_time = null
+    let max_vram_used = null
+
     runningData.nodes_execution_time.forEach(function (item) {
         const nodeId = item.node;
         const node = app.graph.getNodeById(nodeId)
@@ -190,7 +195,16 @@ function buildTableHtml() {
 
         const [diffColor, diffText] = diff(item.execution_time, preExecutionTime);
 
+        if (max_execution_time == null || item.execution_time > max_execution_time) {
+            max_execution_time = item.execution_time
+        }
+
+        if (max_vram_used == null || item.vram_used > max_vram_used) {
+            max_vram_used = item.vram_used
+        }
+
         tableBody.append($el("tr", {
+            style: {"cursor": "pointer"},
             onclick: () => {
                 if (node) {
                     app.canvas.selectNode(node, false);
@@ -211,11 +225,36 @@ function buildTableHtml() {
                 },
                 "textContent": diffText
             }),
-            $el("td", {style: {"textAlign": "right"}, "textContent": formatBytes(item.vram_used,2)}),
+            $el("td", {style: {"textAlign": "right"}, "textContent": formatBytes(item.vram_used, 2)}),
         ]))
     });
     if (runningData.total_execution_time !== null) {
         const [diffColor, diffText] = diff(runningData.total_execution_time, lastRunningDate?.total_execution_time);
+
+         tableFooter.append($el("tr", [
+            $el("td", {style: {"textAlign": "right"}, "textContent": 'Max'}),
+            $el("td", {style: {"textAlign": "right"}, "textContent": ''}),
+            $el("td", {
+                style: {"textAlign": "right"},
+                "textContent": max_execution_time != null ? formatExecutionTime(max_execution_time) : ''
+            }),
+            $el("td", {
+                style: {"textAlign": "right"},
+                "textContent": ''
+            }),
+            $el("td", {
+                style: {
+                    "textAlign": "right",
+                    "color": diffColor
+                },
+                "textContent": ''
+            }),
+            $el("td", {
+                style: {"textAlign": "right"},
+                "textContent": max_vram_used != null ? formatBytes(max_vram_used, 2) : ''
+            }),
+        ]))
+
         tableFooter.append($el("tr", [
             $el("td", {style: {"textAlign": "right"}, "textContent": 'Total'}),
             $el("td", {style: {"textAlign": "right"}, "textContent": ''}),
