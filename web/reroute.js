@@ -10,7 +10,7 @@ app.registerExtension({
             // region Copy From litegraph.core.js
             var menuInfo = [];
             if (getSlotMenuOptions) {
-                menuInfo = getSlotMenuOptions.apply(this, slot);
+                menuInfo = getSlotMenuOptions.apply(this, [slot]);
             } else {
                 if (
                     slot &&
