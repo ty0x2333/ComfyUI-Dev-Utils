@@ -1,3 +1,17 @@
+0.5.0
+---
+
+### Enhancement
+
+1. Add VRAM Used to the ExecutionTime Node.
+
+   PR: https://github.com/ty0x2333/ComfyUI-Dev-Utils/pull/20
+
+   Thanks [drake7707](https://github.com/drake7707) .
+
+2. Add a Max statistics row to the ExecutionTime Node to easily view the longest execution time of a node and the VRAM
+   requirements of the workflow.
+
 0.4.3
 ---
 
