@@ -1,3 +1,14 @@
+0.5.1
+---
+
+### BUG Fix
+
+1. `getSlotMenuOptions.apply` incorrectly applying arguments when right clicking on slots.
+
+   https://github.com/ty0x2333/ComfyUI-Dev-Utils/issues/18
+
+   Thanks [Trung0246](https://github.com/Trung0246)
+
 0.5.0
 ---
 
