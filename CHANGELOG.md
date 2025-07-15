@@ -1,3 +1,14 @@
+0.6.0
+---
+
+### BUG Fix
+
+1. Fix for new async support added in ComfyUI PR #8830
+
+   https://github.com/ty0x2333/ComfyUI-Dev-Utils/pull/32
+
+   Thanks [Geeknasty](https://github.com/Geeknasty)
+
 0.5.1
 ---
 
