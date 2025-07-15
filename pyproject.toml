@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-dev-utils"
 description = "Execution Time Analysis, Reroute Enhancement, Node collection for developers."
-version = "0.5.1"
+version = "0.6.0"
 license = { text = "MIT License" }
 dependencies = ["aiohttp-sse"]
 
