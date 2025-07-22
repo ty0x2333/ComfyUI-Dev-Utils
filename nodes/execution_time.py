@@ -84,12 +84,12 @@ try:
             return result
     else:
         def swizzle_execute(server, dynprompt, caches, current_item, extra_data, executed, prompt_id,
-                            execution_list, pending_subgraph_results, pending_async_nodes):
+                            execution_list, pending_subgraph_results):
             unique_id = current_item
             class_type = dynprompt.get_node(unique_id)['class_type']
             last_node_id = server.last_node_id
             result = origin_execute(server, dynprompt, caches, current_item, extra_data, executed, prompt_id,
-                                    execution_list, pending_subgraph_results, pending_async_nodes)
+                                    execution_list, pending_subgraph_results)
             handle_execute(class_type, last_node_id, prompt_id, server, unique_id)
             return result
 
