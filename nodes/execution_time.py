@@ -4,6 +4,8 @@ import torch
 import inspect
 import execution
 import server
+
+
 # import model_management
 
 
@@ -73,8 +75,8 @@ try:
     origin_execute = execution.execute
 
     if inspect.iscoroutinefunction(origin_execute):
-        async def swizzle_execute(server, dynprompt, caches, current_item, extra_data, executed, prompt_id,
-                                  execution_list, pending_subgraph_results, pending_async_nodes):
+        async def dev_utils_execute(server, dynprompt, caches, current_item, extra_data, executed, prompt_id,
+                                    execution_list, pending_subgraph_results, pending_async_nodes):
             unique_id = current_item
             class_type = dynprompt.get_node(unique_id)['class_type']
             last_node_id = server.last_node_id
@@ -83,18 +85,17 @@ try:
             handle_execute(class_type, last_node_id, prompt_id, server, unique_id)
             return result
     else:
-        def swizzle_execute(server, dynprompt, caches, current_item, extra_data, executed, prompt_id,
-                            execution_list, pending_subgraph_results, pending_async_nodes):
+        def dev_utils_execute(server, dynprompt, caches, current_item, extra_data, executed, prompt_id,
+                              execution_list, pending_subgraph_results):
             unique_id = current_item
             class_type = dynprompt.get_node(unique_id)['class_type']
             last_node_id = server.last_node_id
             result = origin_execute(server, dynprompt, caches, current_item, extra_data, executed, prompt_id,
-                                    execution_list, pending_subgraph_results, pending_async_nodes)
+                                    execution_list, pending_subgraph_results)
             handle_execute(class_type, last_node_id, prompt_id, server, unique_id)
             return result
 
-
-    execution.execute = swizzle_execute
+    execution.execute = dev_utils_execute
 except Exception as e:
     pass
 
@@ -104,9 +105,9 @@ try:
     origin_recursive_execute = execution.recursive_execute
 
 
-    def swizzle_origin_recursive_execute(server, prompt, outputs, current_item, extra_data, executed, prompt_id,
-                                         outputs_ui,
-                                         object_storage):
+    def dev_utils_origin_recursive_execute(server, prompt, outputs, current_item, extra_data, executed, prompt_id,
+                                           outputs_ui,
+                                           object_storage):
         unique_id = current_item
         class_type = prompt[unique_id]['class_type']
         last_node_id = server.last_node_id
@@ -117,7 +118,7 @@ try:
         return result
 
 
-    execution.recursive_execute = swizzle_origin_recursive_execute
+    execution.recursive_execute = dev_utils_origin_recursive_execute
 except Exception as e:
     pass
 # endregion
@@ -125,8 +126,8 @@ except Exception as e:
 origin_func = server.PromptServer.send_sync
 
 
-def swizzle_send_sync(self, event, data, sid=None):
-    # print(f"swizzle_send_sync, event: {event}, data: {data}")
+def dev_utils_send_sync(self, event, data, sid=None):
+    # print(f"dev_utils_send_sync, event: {event}, data: {data}")
     global CURRENT_START_EXECUTION_DATA
     if event == "execution_start":
         CURRENT_START_EXECUTION_DATA = dict(
@@ -158,4 +159,4 @@ def swizzle_send_sync(self, event, data, sid=None):
             CURRENT_START_EXECUTION_DATA['nodes_start_vram'][node_id] = get_peak_memory()
 
 
-server.PromptServer.send_sync = swizzle_send_sync
+server.PromptServer.send_sync = dev_utils_send_sync

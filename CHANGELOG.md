@@ -1,3 +1,16 @@
+0.6.1
+---
+
+### Enhancement
+
+1. Rename hook methods starting with `swizzle_` to `dev_utils_`, so that errors can be located more easily.
+
+### BUG Fix
+
+1. Fix TypeError: swizzle_execute() missing 1 required positional argument: 'pending_async_nodes'.
+
+   https://github.com/ty0x2333/ComfyUI-Dev-Utils/issues/33
+
 0.6.0
 ---
 
