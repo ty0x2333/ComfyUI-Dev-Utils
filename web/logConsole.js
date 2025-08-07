@@ -199,19 +199,17 @@ app.registerExtension({
             showButton.hidden = visible || !logConsoleEnabled;
         }
 
-        // Initialize the console visibility based on saved state
-        const initiallyVisible = getValue('Visible', '1') === '1';
+        // Initialize the console visibility based on saved state (default to hidden)
+        const initiallyVisible = getValue('Visible', '0') === '1';
         setConsoleVisible(initiallyVisible);
 
         this.setupTerminal(containerElem, consoleElem);
 
-        // Start SSE connection if console is enabled
-        if (logConsoleEnabled) {
-            this.startSSE();
-        }
+        // Don't start SSE connection by default since console is disabled by default
+        // SSE will start when console is enabled via the toggle
 
         showButton.onclick = () => {
-            const newVisible = !(getValue('Visible', '1') === '1');
+            const newVisible = !(getValue('Visible', '0') === '1');
             setConsoleVisible(newVisible);
             // Manage SSE connection based on visibility
             if (newVisible && logConsoleEnabled) {
@@ -253,12 +251,12 @@ app.registerExtension({
             id: "TyDev-Utils.LogConsole.Enabled",
             name: "TyDev LogConsole Enabled",
             type: "boolean",
-            defaultValue: true,
+            defaultValue: false,
             onChange: onEnabledChange
         });
 
-        // New setting: Disable execution time logging
-        let executionTimeLoggingEnabled = true;
+        // Execution time logging toggle
+        let executionTimeLoggingEnabled = false;
         const onExecutionTimeLogChange = (value) => {
             executionTimeLoggingEnabled = value;
             // Send API request to backend to toggle execution time logging
@@ -272,7 +270,7 @@ app.registerExtension({
             id: "TyDev-Utils.LogConsole.ExecutionTimeLoggingEnabled", 
             name: "TyDev LogConsole Execution Time Logging Enabled",
             type: "boolean",
-            defaultValue: true,
+            defaultValue: false,
             onChange: onExecutionTimeLogChange
         });
     },
@@ -322,9 +320,7 @@ app.registerExtension({
         };
 
         const messageHandler = (event) => {
-            if (!containerElem.hidden && logConsoleEnabled) {
-                this.terminal?.write(event.data);
-            }
+            this.terminal?.write(event.data);
         }
 
         this.eventSource.addEventListener("message", messageHandler);

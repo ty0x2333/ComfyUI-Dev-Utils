@@ -9,7 +9,7 @@ import server
 # import model_management
 
 # Global flag to control execution time logging
-EXECUTION_TIME_LOGGING_ENABLED = True
+EXECUTION_TIME_LOGGING_ENABLED = False
 
 
 class ExecutionTime:
