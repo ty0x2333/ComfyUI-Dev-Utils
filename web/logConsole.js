@@ -252,6 +252,25 @@ app.registerExtension({
             onChange: onTerminalLogChange
         });
 
+        // New setting: Disable execution time logging
+        let executionTimeLoggingEnabled = true;
+        const onExecutionTimeLogChange = (value) => {
+            executionTimeLoggingEnabled = value;
+            // Send API request to backend to toggle execution time logging
+            api.fetchApi("/ty-dev-utils/toggle-execution-logging", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ enabled: value })
+            }).catch(err => console.error("Failed to toggle execution time logging:", err));
+        };
+        executionTimeLoggingEnabled = app.ui.settings.addSetting({
+            id: "TyDev-Utils.LogConsole.ExecutionTimeLoggingEnabled", 
+            name: "TyDev LogConsole Execution Time Logging Enabled",
+            type: "boolean",
+            defaultValue: true,
+            onChange: onExecutionTimeLogChange
+        });
+
         // Patch terminal output
         const origConsoleLog = window.console.log;
         window.console.log = function(...args) {

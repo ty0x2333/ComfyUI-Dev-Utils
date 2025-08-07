@@ -8,6 +8,9 @@ import server
 
 # import model_management
 
+# Global flag to control execution time logging
+EXECUTION_TIME_LOGGING_ENABLED = True
+
 
 class ExecutionTime:
     CATEGORY = "TyDev-Utils/Debug"
@@ -60,7 +63,8 @@ def handle_execute(class_type, last_node_id, prompt_id, server, unique_id):
 
         end_vram = get_peak_memory()
         vram_used = end_vram - start_vram
-        print(f"end_vram - start_vram: {end_vram} - {start_vram} = {vram_used}")
+        if EXECUTION_TIME_LOGGING_ENABLED:
+            print(f"end_vram - start_vram: {end_vram} - {start_vram} = {vram_used}")
         if server.client_id is not None and last_node_id != server.last_node_id:
             server.send_sync(
                 "TyDev-Utils.ExecutionTime.executed",
@@ -68,7 +72,8 @@ def handle_execute(class_type, last_node_id, prompt_id, server, unique_id):
                  "vram_used": vram_used},
                 server.client_id
             )
-        print(f"#{unique_id} [{class_type}]: {execution_time:.2f}s - vram {vram_used}b")
+        if EXECUTION_TIME_LOGGING_ENABLED:
+            print(f"#{unique_id} [{class_type}]: {execution_time:.2f}s - vram {vram_used}b")
 
 
 try:
@@ -160,3 +165,16 @@ def dev_utils_send_sync(self, event, data, sid=None):
 
 
 server.PromptServer.send_sync = dev_utils_send_sync
+
+
+# API endpoint to toggle execution time logging
+@server.PromptServer.instance.routes.post("/ty-dev-utils/toggle-execution-logging")
+async def toggle_execution_logging(request):
+    global EXECUTION_TIME_LOGGING_ENABLED
+    try:
+        data = await request.json()
+        enabled = data.get('enabled', True)
+        EXECUTION_TIME_LOGGING_ENABLED = enabled
+        return server.web.json_response({'success': True, 'enabled': enabled})
+    except Exception as e:
+        return server.web.json_response({'success': False, 'error': str(e)}, status=400)
