@@ -205,11 +205,23 @@ app.registerExtension({
 
         this.setupTerminal(containerElem, consoleElem);
 
+        // Start SSE connection if console is enabled
+        if (logConsoleEnabled) {
+            this.startSSE();
+        }
+
         showButton.onclick = () => {
-            setConsoleVisible(!(getValue('Visible', '1') === '1'));
+            const newVisible = !(getValue('Visible', '1') === '1');
+            setConsoleVisible(newVisible);
+            // Manage SSE connection based on visibility
+            if (newVisible && logConsoleEnabled) {
+                this.startSSE();
+            }
         }
         closeButton.onclick = () => {
             setConsoleVisible(false);
+            // Note: Keep SSE running when manually closed, so logs are ready when reopened
+            // SSE is only stopped when the main toggle is turned off
         }
 
         api.addEventListener("reconnected", () => {
@@ -301,22 +313,18 @@ app.registerExtension({
         const logSSEUrl = api.apiURL(`/ty-dev-utils/log?console_id=${consoleId}&client_id=${api.clientId}`);
         this.eventSource = new EventSource(logSSEUrl);
         this.eventSource.onopen = () => {
-            // console.log('EventSource connected')
             this.setSSEState(this.eventSource.readyState);
         };
 
         this.eventSource.onerror = (error) => {
-            // console.error('EventSource failed', error)
             this.eventSource.close();
             this.setSSEState(this.eventSource.readyState);
         };
 
         const messageHandler = (event) => {
-            // Only process messages if console is visible and enabled
             if (!containerElem.hidden && logConsoleEnabled) {
                 this.terminal?.write(event.data);
             }
-            // console.log(event.data);
         }
 
         this.eventSource.addEventListener("message", messageHandler);
