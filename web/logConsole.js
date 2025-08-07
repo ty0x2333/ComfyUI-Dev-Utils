@@ -199,13 +199,27 @@ app.registerExtension({
             showButton.hidden = visible || !logConsoleEnabled;
         }
 
+        // Initialize the console visibility based on saved state (default to hidden)
+        const initiallyVisible = getValue('Visible', '0') === '1';
+        setConsoleVisible(initiallyVisible);
+
         this.setupTerminal(containerElem, consoleElem);
 
+        // Don't start SSE connection by default since console is disabled by default
+        // SSE will start when console is enabled via the toggle
+
         showButton.onclick = () => {
-            setConsoleVisible(!(getValue('Visible', '1') === '1'));
+            const newVisible = !(getValue('Visible', '0') === '1');
+            setConsoleVisible(newVisible);
+            // Manage SSE connection based on visibility
+            if (newVisible && logConsoleEnabled) {
+                this.startSSE();
+            }
         }
         closeButton.onclick = () => {
             setConsoleVisible(false);
+            // Note: Keep SSE running when manually closed, so logs are ready when reopened
+            // SSE is only stopped when the main toggle is turned off
         }
 
         api.addEventListener("reconnected", () => {
@@ -218,11 +232,13 @@ app.registerExtension({
             logConsoleEnabled = value;
             if (value) {
                 this.startSSE();
+                // When enabling, show the console window
+                setConsoleVisible(true);
             } else {
                 this.stopSSE();
+                // When disabling, hide the console window
+                setConsoleVisible(false);
             }
-            const visible = getValue('Visible', '1') === '1';
-            setConsoleVisible(visible);
 
             if (!value) {
                 api.fetchApi(`/ty-dev-utils/disable-log?console_id=${consoleId}&client_id=${api.clientId}`, {
@@ -235,8 +251,27 @@ app.registerExtension({
             id: "TyDev-Utils.LogConsole.Enabled",
             name: "TyDev LogConsole Enabled",
             type: "boolean",
-            defaultValue: true,
+            defaultValue: false,
             onChange: onEnabledChange
+        });
+
+        // Execution time logging toggle
+        let executionTimeLoggingEnabled = false;
+        const onExecutionTimeLogChange = (value) => {
+            executionTimeLoggingEnabled = value;
+            // Send API request to backend to toggle execution time logging
+            api.fetchApi("/ty-dev-utils/toggle-execution-logging", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ enabled: value })
+            }).catch(err => console.error("Failed to toggle execution time logging:", err));
+        };
+        executionTimeLoggingEnabled = app.ui.settings.addSetting({
+            id: "TyDev-Utils.LogConsole.ExecutionTimeLoggingEnabled", 
+            name: "TyDev LogConsole Execution Time Logging Enabled",
+            type: "boolean",
+            defaultValue: false,
+            onChange: onExecutionTimeLogChange
         });
     },
     setupTerminal(containerElem, consoleElem) {
@@ -276,19 +311,16 @@ app.registerExtension({
         const logSSEUrl = api.apiURL(`/ty-dev-utils/log?console_id=${consoleId}&client_id=${api.clientId}`);
         this.eventSource = new EventSource(logSSEUrl);
         this.eventSource.onopen = () => {
-            // console.log('EventSource connected')
             this.setSSEState(this.eventSource.readyState);
         };
 
         this.eventSource.onerror = (error) => {
-            // console.error('EventSource failed', error)
             this.eventSource.close();
             this.setSSEState(this.eventSource.readyState);
         };
 
         const messageHandler = (event) => {
             this.terminal?.write(event.data);
-            // console.log(event.data);
         }
 
         this.eventSource.addEventListener("message", messageHandler);
