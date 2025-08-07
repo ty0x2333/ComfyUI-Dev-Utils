@@ -199,6 +199,10 @@ app.registerExtension({
             showButton.hidden = visible || !logConsoleEnabled;
         }
 
+        // Initialize the console visibility based on saved state
+        const initiallyVisible = getValue('Visible', '1') === '1';
+        setConsoleVisible(initiallyVisible);
+
         this.setupTerminal(containerElem, consoleElem);
 
         showButton.onclick = () => {
@@ -218,12 +222,11 @@ app.registerExtension({
             logConsoleEnabled = value;
             if (value) {
                 this.startSSE();
-                // When enabling, restore the previous visibility state
-                const visible = getValue('Visible', '1') === '1';
-                setConsoleVisible(visible);
+                // When enabling, show the console window
+                setConsoleVisible(true);
             } else {
                 this.stopSSE();
-                // When disabling, hide everything
+                // When disabling, hide the console window
                 setConsoleVisible(false);
             }
 
@@ -309,7 +312,10 @@ app.registerExtension({
         };
 
         const messageHandler = (event) => {
-            this.terminal?.write(event.data);
+            // Only process messages if console is visible and enabled
+            if (!containerElem.hidden && logConsoleEnabled) {
+                this.terminal?.write(event.data);
+            }
             // console.log(event.data);
         }
 
