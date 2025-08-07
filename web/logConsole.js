@@ -218,11 +218,14 @@ app.registerExtension({
             logConsoleEnabled = value;
             if (value) {
                 this.startSSE();
+                // When enabling, restore the previous visibility state
+                const visible = getValue('Visible', '1') === '1';
+                setConsoleVisible(visible);
             } else {
                 this.stopSSE();
+                // When disabling, hide everything
+                setConsoleVisible(false);
             }
-            const visible = getValue('Visible', '1') === '1';
-            setConsoleVisible(visible);
 
             if (!value) {
                 api.fetchApi(`/ty-dev-utils/disable-log?console_id=${consoleId}&client_id=${api.clientId}`, {
