@@ -238,6 +238,33 @@ app.registerExtension({
             defaultValue: true,
             onChange: onEnabledChange
         });
+
+        // New setting: Disable log output to terminal
+        let logTerminalOutputEnabled = true;
+        const onTerminalLogChange = (value) => {
+            logTerminalOutputEnabled = value;
+        };
+        logTerminalOutputEnabled = app.ui.settings.addSetting({
+            id: "TyDev-Utils.LogConsole.TerminalOutputEnabled",
+            name: "TyDev LogConsole Output to Terminal Enabled",
+            type: "boolean",
+            defaultValue: true,
+            onChange: onTerminalLogChange
+        });
+
+        // Patch terminal output
+        const origConsoleLog = window.console.log;
+        window.console.log = function(...args) {
+            if (logTerminalOutputEnabled) {
+                origConsoleLog.apply(window.console, args);
+            }
+        };
+        const origConsoleError = window.console.error;
+        window.console.error = function(...args) {
+            if (logTerminalOutputEnabled) {
+                origConsoleError.apply(window.console, args);
+            }
+        };
     },
     setupTerminal(containerElem, consoleElem) {
         if (this.terminal) {
