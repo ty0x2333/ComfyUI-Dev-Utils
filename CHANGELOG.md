@@ -1,3 +1,10 @@
+0.6.2
+---
+
+### BUG Fix
+
+1. Fixed ExecutionTime throwing an error during execution after the latest ComfyUI [513b0c46](https://github.com/comfyanonymous/ComfyUI/commit/513b0c46fba3bf40191d684ff81207ad935f1717) update.
+
 0.6.1
 ---
 
