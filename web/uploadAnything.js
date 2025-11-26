@@ -1,4 +1,4 @@
-import {app} from "../../scripts/app.js";
+import {app} from "../../../scripts/app.js";
 import {api} from '../../../scripts/api.js'
 
 async function uploadFile(file) {
@@ -75,7 +75,7 @@ function addUploadWidget(nodeType, nodeData, widgetName) {
 app.registerExtension({
     name: "TyDev-Utils.UploadAnything",
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
-        if (nodeData?.name === 'UploadAnything') {
+        if (nodeData?.name === 'TY_UploadAnything') {
             addUploadWidget(nodeType, nodeData, 'file')
         }
     },
